@@ -50,13 +50,6 @@ $app->get('/hello', function (Request $request, Response $response): Response {
   return $response;
 });
 
-$app->get('/db-check', function (Request $request, Response $response) use ($container): Response {
-  $pdo = $container->get(PDO::class);
-  $version = $pdo->query('SELECT version()')->fetchColumn();
-  $response->getBody()->write((string) $version);
-  return $response;
-});
-
 $app->addRoutingMiddleware();
 $app->addErrorMiddleware($displayErrorDetails, true, true);
 
