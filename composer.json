@@ -19,5 +19,8 @@
         "psr-4": {
             "App\\Tests\\": "tests/"
         }
+    },
+    "require-dev": {
+        "robmorgan/phinx": "^0.16.12"
     }
 }
