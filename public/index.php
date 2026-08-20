@@ -12,7 +12,9 @@ require __DIR__ . '/../vendor/autoload.php';
 
 $dotenv = Dotenv::createImmutable(__DIR__ . '/..');
 $dotenv->load();
-$dotenv->required(['DB_HOST', 'DB_PORT', 'DB_NAME', 'DB_USER', 'DB_PASS']);
+$dotenv->required(['DB_HOST', 'DB_PORT', 'DB_NAME', 'DB_USER', 'DB_PASS', 'APP_DEBUG']);
+
+$displayErrorDetails = filter_var($_ENV['APP_DEBUG'], FILTER_VALIDATE_BOOLEAN);
 
 $containerBuilder = new ContainerBuilder();
 
@@ -54,5 +56,8 @@ $app->get('/db-check', function (Request $request, Response $response) use ($con
   $response->getBody()->write((string) $version);
   return $response;
 });
+
+$app->addRoutingMiddleware();
+$app->addErrorMiddleware($displayErrorDetails, true, true);
 
 $app->run();
