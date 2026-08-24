@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Repository;
 
 use App\Entity\User;
+use App\Exception\EmailAlreadyExistsException;
 use PDO;
 use Symfony\Component\Uid\Uuid;
 
@@ -38,19 +39,29 @@ final class UserRepository implements UserRepositoryInterface
     return $row === false ? null : $this->hydrate($row);
   }
 
+  /**
+   * @throws EmailAlreadyExistsException
+   */
   public function create(User $user): void
   {
     $stmt = $this->pdo->prepare(
       'INSERT INTO users (id, email, password_hash, created_at, updated_at)
       VALUES (:id, :email, :password_hash, :created_at, :updated_at)'
     );
-    $stmt->execute([
-      'id' => $user->id->toRfc4122(),
-      'email' => $user->email,
-      'password_hash' => $user->passwordHash,
-      'created_at' => $user->createdAt->format('Y-m-d H:i:sP'),
-      'updated_at' => $user->updatedAt->format('Y-m-d H:i:sP'),
-    ]);
+    try {
+      $stmt->execute([
+        'id' => $user->id->toRfc4122(),
+        'email' => $user->email,
+        'password_hash' => $user->passwordHash,
+        'created_at' => $user->createdAt->format('Y-m-d H:i:sP'),
+        'updated_at' => $user->updatedAt->format('Y-m-d H:i:sP'),
+      ]);
+    } catch (\PDOException $e) {
+      if ($e->errorInfo[0] === '23505') {
+        throw new EmailAlreadyExistsException("Email already registered.", 0, $e);
+      }
+      throw $e;
+    }
   }
 
   /**

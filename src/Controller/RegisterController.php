@@ -9,6 +9,7 @@ use App\Repository\UserRepositoryInterface;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Symfony\Component\Uid\Uuid;
+use App\Exception\EmailAlreadyExistsException;
 
 final class RegisterController
 {
@@ -56,7 +57,12 @@ final class RegisterController
       createdAt: $now,
       updatedAt: $now,
     );
-    $this->users->create($user);
+    try {
+      $this->users->create($user);
+    } catch (EmailAlreadyExistsException $e) {
+      $response->getBody()->write(((string) json_encode(['error' => 'Email already registered.'])));
+      return $response->withHeader('Content-Type', 'application/json')->withStatus(409);
+    }
 
     $response->getBody()->write((string) json_encode([
       'id' => $user->id->toRfc4122(),
