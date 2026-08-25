@@ -11,4 +11,8 @@ return [
     'user' => $_ENV['DB_USER'],
     'pass' => $_ENV['DB_PASS'],
   ],
+  'jwt' => [
+    'secret' => $_ENV['JWT_SECRET'],
+    'ttl' => 60 * 60 * 24,  // 24 hours
+  ],
 ];

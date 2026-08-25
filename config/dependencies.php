@@ -5,6 +5,7 @@ declare(strict_types=1);
 use App\Repository\UserRepository;
 use App\Repository\UserRepositoryInterface;
 use Psr\Container\ContainerInterface;
+use App\Service\TokenService;
 
 return [
   PDO::class => function (ContainerInterface $c): PDO {
@@ -20,5 +21,12 @@ return [
 
   UserRepositoryInterface::class => function (ContainerInterface $c): UserRepository {
     return new UserRepository($c->get(PDO::class));
+  },
+
+  TokenService::class => function (ContainerInterface $c): TokenService {
+    return new TokenService(
+      $c->get('settings')['jwt']['secret'],
+      $c->get('settings')['jwt']['ttl'],
+    );
   },
 ];
