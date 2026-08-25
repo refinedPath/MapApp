@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+use App\Repository\PlaceRepository;
+use App\Repository\PlaceRepositoryInterface;
 use App\Repository\UserRepository;
 use App\Repository\UserRepositoryInterface;
 use Psr\Container\ContainerInterface;
@@ -33,4 +35,8 @@ return [
   },
 
   ResponseFactoryInterface::class => fn(): ResponseFactory => new ResponseFactory(),
+
+  PlaceRepositoryInterface::class => function (ContainerInterface $c): PlaceRepository {
+    return new PlaceRepository($c->get(PDO::class));
+  }
 ];

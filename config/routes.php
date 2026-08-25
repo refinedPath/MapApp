@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+use App\Controller\CreatePlaceController;
+use App\Controller\ListPlacesController;
 use App\Controller\LoginController;
 use App\Controller\RegisterController;
 use App\Middleware\AuthMiddleware;
@@ -10,16 +12,14 @@ use Slim\Routing\RouteCollectorProxy;
 
 return function (App $app): void {
   // public routes - no auth
-  $app->post('/api/register', RegisterController::class);
-  $app->post('/api/login', LoginController::class);
+  $app->group('/api', function (RouteCollectorProxy $group): void {
+    $group->post('/register', RegisterController::class);
+    $group->post('/login', LoginController::class);
+  });
 
   // protected routes - require a valid token
   $app->group('/api', function (RouteCollectorProxy $group): void {
-    // temporary - to test auth
-    $group->get('/me', function ($request, $response) {
-      $userId = $request->getAttribute('userId');
-      $response->getBody()->write((string) json_encode(['userId' => (string) $userId]));
-      return $response->withHeader('Content-Type', 'application/json');
-    });
+    $group->post('/places', CreatePlaceController::class);
+    $group->get('/places', ListPlacesController::class);
   })->add(AuthMiddleware::class);
 };
