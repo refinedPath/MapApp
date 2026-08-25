@@ -5,7 +5,9 @@ declare(strict_types=1);
 use App\Repository\UserRepository;
 use App\Repository\UserRepositoryInterface;
 use Psr\Container\ContainerInterface;
+use Psr\Http\Message\ResponseFactoryInterface;
 use App\Service\TokenService;
+use Slim\Psr7\Factory\ResponseFactory;
 
 return [
   PDO::class => function (ContainerInterface $c): PDO {
@@ -29,4 +31,6 @@ return [
       $c->get('settings')['jwt']['ttl'],
     );
   },
+
+  ResponseFactoryInterface::class => fn(): ResponseFactory => new ResponseFactory(),
 ];

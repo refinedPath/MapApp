@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Service;
 
+use App\Exception\InvalidTokenException;
 use Firebase\JWT\JWT;
 use Firebase\JWT\Key;
 use Symfony\Component\Uid\Uuid;
@@ -27,5 +28,15 @@ final class TokenService
     ];
 
     return JWT::encode($payload, $this->secret, self::ALGORITHM);
+  }
+
+  public function verifyToken(string $token): Uuid
+  {
+    try {
+      $decoded = JWT::decode($token, new Key($this->secret, self::ALGORITHM));
+    } catch (\Throwable $e) {
+      throw new InvalidTokenException('Invalid or expired token.', 0, $e);
+    }
+    return Uuid::fromString($decoded->sub);
   }
 }
