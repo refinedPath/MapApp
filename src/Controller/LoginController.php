@@ -20,8 +20,10 @@ final class LoginController
   {
     $data = (array) $request->getParsedBody();
 
-    $email = trim((string) ($data['email'] ?? ''));
-    $password = (string) ($data['password'] ?? '');
+    $emailRaw = $data['email'] ?? null;
+    $email = is_string($emailRaw) ? trim($emailRaw) : '';
+    $passwordRaw = $data['password'] ?? null;
+    $password = is_string($passwordRaw) ? $passwordRaw : '';
 
     // validation
     $errors = [];

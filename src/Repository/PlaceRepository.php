@@ -31,9 +31,12 @@ final class PlaceRepository implements PlaceRepositoryInterface
       'user_id' => $userId->toRfc4122(),
     ]);
 
+    /** @var list<array<string, string>> $rows */
+    $rows = $stmt->fetchAll();
+
     return array_map(
       fn(array $row): Place => $this->hydrate($row),
-      $stmt->fetchAll()
+      $rows
     );
   }
 
@@ -51,6 +54,8 @@ final class PlaceRepository implements PlaceRepositoryInterface
       'id' => $id->toRfc4122(),
       'user_id' => $userId->toRfc4122(),
     ]);
+
+    /** @var array<string, string>|false $row */
     $row = $stmt->fetch();
 
     return $row === false ? null : $this->hydrate($row);

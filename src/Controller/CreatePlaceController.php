@@ -22,12 +22,17 @@ final class CreatePlaceController
   public function __invoke(Request $request, Response $response): Response
   {
     $userId = $request->getAttribute('userId');
+    if (!$userId instanceof Uuid) {
+      throw new \RuntimeException('Authenticated user id missing from request.');
+    }
     $data = (array) $request->getParsedBody();
 
-    $name = trim((string) ($data['name'] ?? ''));
-    $description = isset($data['description'])
-      ? trim((string) $data['description'])
-      : null;
+    $nameRaw = $data['name'] ?? null;
+    $name = is_string($nameRaw) ? trim($nameRaw) : '';
+    $descriptionRaw = $data['description'] ?? null;
+    $description = is_string($descriptionRaw) ? trim($descriptionRaw) : null;
+    $latRaw = $data['latitude'] ?? null;
+    $lngRaw = $data['longitude'] ?? null;
 
     // validation
     $errors = [];
@@ -36,10 +41,10 @@ final class CreatePlaceController
     } elseif (mb_strlen($name) > Place::MAX_NAME_LENGTH) {
       $errors['name'] = 'Name must be at most ' . Place::MAX_NAME_LENGTH . ' characters.';
     }
-    if (!isset($data['latitude']) || !is_numeric($data['latitude'])) {
+    if (!is_numeric($latRaw)) {
       $errors['latitude'] = 'Latitude is required and must be numeric.';
     }
-    if (!isset($data['longitude']) || !is_numeric($data['longitude'])) {
+    if (!is_numeric($lngRaw)) {
       $errors['longitude'] = 'Longitude is required and must be numeric.';
     }
 
@@ -48,10 +53,14 @@ final class CreatePlaceController
       return $response->withHeader('Content-Type', 'application/json')->withStatus(422);
     }
 
+    if (!is_numeric($latRaw) || !is_numeric($lngRaw)) {
+      throw new \RuntimeException('Coordinates not numeric after validation.');
+    }
+
     try {
       $location = new Coordinates(
-        latitude: (float) $data['latitude'],
-        longitude: (float) $data['longitude'],
+        latitude: (float) $latRaw,
+        longitude: (float) $lngRaw,
       );
     } catch (InvalidCoordinatesException $e) {
       $response->getBody()->write((string) json_encode([

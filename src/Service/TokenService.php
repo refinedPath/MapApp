@@ -37,6 +37,15 @@ final class TokenService
     } catch (\Throwable $e) {
       throw new InvalidTokenException('Invalid or expired token.', 0, $e);
     }
-    return Uuid::fromString($decoded->sub);
+
+    if (!isset($decoded->sub) || !is_string($decoded->sub)) {
+      throw new InvalidTokenException('Token is missing a valid subject.');
+    }
+
+    try {
+      return Uuid::fromString($decoded->sub);
+    } catch (\InvalidArgumentException $e) {
+      throw new InvalidTokenException('Token subject is not a valid identifier.', 0, $e);
+    }
   }
 }

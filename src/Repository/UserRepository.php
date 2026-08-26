@@ -22,6 +22,8 @@ final class UserRepository implements UserRepositoryInterface
       FROM users WHERE email = :email'
     );
     $stmt->execute(['email' => $email]);
+
+    /** @var array<string, string>|false $row */
     $row = $stmt->fetch();
 
     return $row === false ? null : $this->hydrate($row);
@@ -34,6 +36,8 @@ final class UserRepository implements UserRepositoryInterface
       FROM users WHERE id = :id'
     );
     $stmt->execute(['id' => $id->toRfc4122()]);
+
+    /** @var array<string, string>|false $row */
     $row = $stmt->fetch();
 
     return $row === false ? null : $this->hydrate($row);
