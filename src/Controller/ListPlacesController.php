@@ -15,7 +15,8 @@ final class ListPlacesController
 {
   public function __construct(
     private readonly PlaceRepositoryInterface $places,
-  ) {}
+  ) {
+  }
 
   public function __invoke(Request $request, Response $response): Response
   {
@@ -26,7 +27,7 @@ final class ListPlacesController
     $places = $this->places->findAllForUser($userId);
 
     $response->getBody()->write((string) json_encode(
-      array_map(fn(Place $p): array => PlaceSerializer::toArray($p), $places)
+      array_map(fn (Place $p): array => PlaceSerializer::toArray($p), $places)
     ));
     return $response->withHeader('Content-Type', 'application/json');
   }

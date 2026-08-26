@@ -6,9 +6,9 @@ use App\Repository\PlaceRepository;
 use App\Repository\PlaceRepositoryInterface;
 use App\Repository\UserRepository;
 use App\Repository\UserRepositoryInterface;
+use App\Service\TokenService;
 use Psr\Container\ContainerInterface;
 use Psr\Http\Message\ResponseFactoryInterface;
-use App\Service\TokenService;
 use Slim\Psr7\Factory\ResponseFactory;
 
 return [
@@ -34,7 +34,7 @@ return [
     );
   },
 
-  ResponseFactoryInterface::class => fn(): ResponseFactory => new ResponseFactory(),
+  ResponseFactoryInterface::class => fn (): ResponseFactory => new ResponseFactory(),
 
   PlaceRepositoryInterface::class => function (ContainerInterface $c): PlaceRepository {
     return new PlaceRepository($c->get(PDO::class));

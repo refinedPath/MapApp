@@ -17,7 +17,8 @@ final class CreatePlaceController
 {
   public function __construct(
     private readonly PlaceRepositoryInterface $places,
-  ) {}
+  ) {
+  }
 
   public function __invoke(Request $request, Response $response): Response
   {

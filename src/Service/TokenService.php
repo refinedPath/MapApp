@@ -16,7 +16,8 @@ final class TokenService
   public function __construct(
     private readonly string $secret,
     private readonly int $ttlSeconds,
-  ) {}
+  ) {
+  }
 
   public function issueForUser(Uuid $userId): string
   {

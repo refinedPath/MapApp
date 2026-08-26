@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace App\Repository;
 
 use App\Entity\User;
-use Symfony\Component\Uid\Uuid;
 use App\Exception\EmailAlreadyExistsException;
+use Symfony\Component\Uid\Uuid;
 
 interface UserRepositoryInterface
 {

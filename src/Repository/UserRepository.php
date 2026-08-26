@@ -6,6 +6,7 @@ namespace App\Repository;
 
 use App\Entity\User;
 use App\Exception\EmailAlreadyExistsException;
+use Override;
 use PDO;
 use Symfony\Component\Uid\Uuid;
 
@@ -13,8 +14,10 @@ final class UserRepository implements UserRepositoryInterface
 {
   public function __construct(
     private readonly PDO $pdo,
-  ) {}
+  ) {
+  }
 
+  #[Override]
   public function findByEmail(string $email): ?User
   {
     $stmt = $this->pdo->prepare(
@@ -29,6 +32,7 @@ final class UserRepository implements UserRepositoryInterface
     return $row === false ? null : $this->hydrate($row);
   }
 
+  #[Override]
   public function findById(Uuid $id): ?User
   {
     $stmt = $this->pdo->prepare(
@@ -46,6 +50,7 @@ final class UserRepository implements UserRepositoryInterface
   /**
    * @throws EmailAlreadyExistsException
    */
+  #[Override]
   public function create(User $user): void
   {
     $stmt = $this->pdo->prepare(

@@ -6,13 +6,14 @@ namespace App\Entity;
 
 use Symfony\Component\Uid\Uuid;
 
-final class User
+final readonly class User
 {
   public function __construct(
-    public readonly Uuid $id,
-    public readonly string $email,
-    public readonly string $passwordHash,
-    public readonly \DateTimeImmutable $createdAt,
-    public readonly \DateTimeImmutable $updatedAt,
-  ) {}
+    public Uuid $id,
+    public string $email,
+    public string $passwordHash,
+    public \DateTimeImmutable $createdAt,
+    public \DateTimeImmutable $updatedAt,
+  ) {
+  }
 }

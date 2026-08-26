@@ -14,7 +14,8 @@ final class LoginController
   public function __construct(
     private readonly UserRepositoryInterface $users,
     private readonly TokenService $tokens,
-  ) {}
+  ) {
+  }
 
   public function __invoke(Request $request, Response $response): Response
   {

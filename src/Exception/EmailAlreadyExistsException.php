@@ -4,4 +4,6 @@ declare(strict_types=1);
 
 namespace App\Exception;
 
-final class EmailAlreadyExistsException extends \RuntimeException {}
+final class EmailAlreadyExistsException extends \RuntimeException
+{
+}

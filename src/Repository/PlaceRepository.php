@@ -6,6 +6,7 @@ namespace App\Repository;
 
 use App\Entity\Coordinates;
 use App\Entity\Place;
+use Override;
 use PDO;
 use Symfony\Component\Uid\Uuid;
 
@@ -13,9 +14,11 @@ final class PlaceRepository implements PlaceRepositoryInterface
 {
   public function __construct(
     private readonly PDO $pdo,
-  ) {}
+  ) {
+  }
 
   /** @return Place[] */
+  #[Override]
   public function findAllForUser(Uuid $userId): array
   {
     $stmt = $this->pdo->prepare(
@@ -35,11 +38,12 @@ final class PlaceRepository implements PlaceRepositoryInterface
     $rows = $stmt->fetchAll();
 
     return array_map(
-      fn(array $row): Place => $this->hydrate($row),
+      fn (array $row): Place => $this->hydrate($row),
       $rows
     );
   }
 
+  #[Override]
   public function findByIdForUser(Uuid $id, Uuid $userId): ?Place
   {
     $stmt = $this->pdo->prepare(
@@ -61,6 +65,7 @@ final class PlaceRepository implements PlaceRepositoryInterface
     return $row === false ? null : $this->hydrate($row);
   }
 
+  #[Override]
   public function create(Place $place): void
   {
     $stmt = $this->pdo->prepare(
