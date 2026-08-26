@@ -57,7 +57,7 @@ final class UserRepository implements UserRepositoryInterface
         'updated_at' => $user->updatedAt->format('Y-m-d H:i:sP'),
       ]);
     } catch (\PDOException $e) {
-      if ($e->errorInfo[0] === '23505') {
+      if (($e->errorInfo[0] ?? null) === '23505') {
         throw new EmailAlreadyExistsException("Email already registered.", 0, $e);
       }
       throw $e;

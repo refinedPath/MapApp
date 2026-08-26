@@ -23,6 +23,7 @@
         }
     },
     "require-dev": {
-        "robmorgan/phinx": "^0.16.12"
+        "robmorgan/phinx": "^0.16.12",
+        "phpstan/phpstan": "^2.2"
     }
 }
