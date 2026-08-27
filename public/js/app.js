@@ -37,7 +37,11 @@ function init() {
   const mapCustomControls = document.getElementById('mapCustomControls');
   const addPlaceBtn = document.getElementById('addPlaceBtn');
   const createPlaceDialog = document.getElementById('createPlaceDialog');
-  const cancelPlaceBtn = document.getElementById('cancelPlaceBtn');
+  const createPlaceForm = document.getElementById('createPlaceForm');
+  const placeName = document.getElementById('placeName');
+  const placeDescription = document.getElementById('placeDescription');
+  const createPlaceError = document.getElementById('createPlaceError');
+  const cancelCreatePlaceBtn = document.getElementById('cancelCreatePlaceBtn');
 
   loginForm.addEventListener('submit', async (event) => {
     event.preventDefault();
@@ -83,7 +87,29 @@ function init() {
     }
   });
 
-  cancelPlaceBtn.addEventListener('click', () => {
+  createPlaceDialog.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    createPlaceError.textContent = '';
+
+    const payload = {
+      name: placeName.value,
+      description: placeDescription.value,
+      latitude: state.pendingLngLat.lat,
+      longitude: state.pendingLngLat.lng,
+    };
+
+    try {
+      const newPlace = await authedFetch(`${API_BASE}/places`, payload);
+      addPlaceMarker(newPlace);
+      createPlaceDialog.close();
+      createPlaceForm.reset();
+    } catch (err) {
+      createPlaceError.textContent = err.message;
+      console.log(err);
+    }
+  });
+
+  cancelCreatePlaceBtn.addEventListener('click', () => {
     createPlaceDialog.close();
     disarmAddPlaceMode();
   });
@@ -130,6 +156,22 @@ async function fetchPlaces() {
     headers: {
       'Authorization': 'Bearer ' + state.token,
     },
+  });
+  const data = await response.json();
+
+  if (!response.ok) throw new Error(data.error ?? `HTTP ${response.status}`);
+
+  return data;
+}
+
+async function authedFetch(url, payload) {
+  const response = await fetch(url, {
+    method: 'POST',
+    headers: {
+      'Authorization': 'Bearer ' + state.token,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(payload),
   });
   const data = await response.json();
 
