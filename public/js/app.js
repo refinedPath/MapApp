@@ -2,7 +2,7 @@
 
 const API_BASE = '/api';
 
-const state = { map: null, token: null };
+const state = { map: null, token: null, addPlaceMode: false, pendingLngLat: null };
 
 /**
  * Create a DOM element with classes, text, attributes, dataset, and children.
@@ -34,8 +34,10 @@ function init() {
   const loginPassword = document.getElementById('loginPassword');
   const loginError = document.getElementById('loginError');
   const mapContainer = document.getElementById('mapContainer');
+  const mapCustomControls = document.getElementById('mapCustomControls');
+  const addPlaceBtn = document.getElementById('addPlaceBtn');
   const createPlaceDialog = document.getElementById('createPlaceDialog');
-  const cancelPlace = document.getElementById('cancelPlace');
+  const cancelPlaceBtn = document.getElementById('cancelPlaceBtn');
 
   loginForm.addEventListener('submit', async (event) => {
     event.preventDefault();
@@ -51,6 +53,7 @@ function init() {
 
       authView.hidden = true;
       mapContainer.hidden = false;
+      mapCustomControls.hidden = false;
 
       if (state.map === null) {
         state.map = new maplibregl.Map({
@@ -66,6 +69,13 @@ function init() {
           addPlaceMarker(place);
         }
 
+        state.map.on('click', (e) => {
+          if (state.addPlaceMode === true) {
+            state.pendingLngLat = e.lngLat;
+            createPlaceDialog.showModal();
+            disarmAddPlaceMode();
+          }
+        });
       }
     } catch (err) {
       loginError.textContent = err.message;
@@ -73,7 +83,30 @@ function init() {
     }
   });
 
-  cancelPlace.addEventListener('click', () => { createPlaceDialog.close(); });
+  cancelPlaceBtn.addEventListener('click', () => {
+    createPlaceDialog.close();
+    disarmAddPlaceMode();
+  });
+
+  addPlaceBtn.addEventListener('click', () => {
+    if (state.addPlaceMode) {
+      disarmAddPlaceMode();
+    } else {
+      armAddPlaceMode();
+    }
+  });
+
+  function armAddPlaceMode() {
+    state.addPlaceMode = true;
+    state.map.getCanvas().style.cursor = 'crosshair';
+    addPlaceBtn.textContent = 'Cancel';
+  }
+
+  function disarmAddPlaceMode() {
+    state.addPlaceMode = false;
+    state.map.getCanvas().style.cursor = '';
+    addPlaceBtn.textContent = 'Add place';
+  }
 }
 
 async function login(payload) {

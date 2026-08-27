@@ -14,6 +14,9 @@
 
 <body>
   <div id="mapContainer" hidden></div>
+  <div id="mapCustomControls" hidden>
+    <button id="addPlaceBtn">Add place</button>
+  </div>
   <div id="authView">
     <article>
       <h2>Login</h2>
@@ -37,7 +40,7 @@
         <textarea id="placeDescription" name="placeDescription"></textarea>
         <p id="createPlaceError" role="alert"></p>
         <input type="submit" value="Save">
-        <input type="button" id="cancelPlace" value="Cancel">
+        <input type="button" id="cancelPlaceBtn" value="Cancel">
       </form>
     </article>
   </dialog>

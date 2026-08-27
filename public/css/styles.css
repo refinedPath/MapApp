@@ -14,12 +14,23 @@ body {
 
 #authView form {
   width: 100%;
-  max-width: 36rem;
+  max-width: 24rem;
 }
 
 #mapContainer {
   position: absolute;
   inset: 0;
+}
+
+#mapCustomControls {
+  padding: 5px;
+  background-color: #fff;
+  border-radius: 5px;
+  position: absolute;
+  top: 25px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 999;
 }
 
 /* restore some of the MapLibre's design overriden by Pico's global styling */
