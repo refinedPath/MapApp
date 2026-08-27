@@ -8,3 +8,32 @@ body {
   position: absolute;
   inset: 0;
 }
+
+/* restore some of the MapLibre's design overriden by Pico's global styling */
+.maplibregl-popup {
+  color: black;
+}
+
+.maplibregl-popup-close-button {
+  color: black;
+  padding: 0px 5px;
+}
+
+.maplibregl-popup-close-button:focus {
+  box-shadow: none;
+  outline: none;
+}
+
+.maplibregl-popup-close-button:focus-visible {
+  outline: 2px solid lightblue;
+  outline-offset: -2px;
+}
+
+.maplibregl-marker {
+  background: none;
+  border-radius: 0;
+  padding: 0;
+  min-width: 0;
+  min-height: 0;
+  border: none;
+}
