@@ -23,17 +23,26 @@ function init() {
 
     try {
       state.token = await login(payload);
+
       authView.hidden = true;
       mapContainer.hidden = false;
 
       if (state.map === null) {
-
         state.map = new maplibregl.Map({
           style: 'https://tiles.openfreemap.org/styles/liberty',
           center: [-74.0135, 40.7054],
           zoom: 12,
           container: 'mapContainer',
         });
+
+        const places = await fetchPlaces();
+
+        for (const place of places) {
+          new maplibregl.Marker()
+            .setLngLat([place.longitude, place.latitude])
+            .addTo(state.map);
+        }
+
       }
     } catch (err) {
       loginError.textContent = err.message;
@@ -55,6 +64,20 @@ async function login(payload) {
   if (!response.ok) throw new Error(data.error ?? `HTTP ${response.status}`);
 
   return data.token;
+}
+
+async function fetchPlaces() {
+  const response = await fetch(`${API_BASE}/places`, {
+    method: 'GET',
+    headers: {
+      'Authorization': 'Bearer ' + state.token,
+    },
+  });
+  const data = await response.json();
+
+  if (!response.ok) throw new Error(data.error ?? `HTTP ${response.status}`);
+
+  return data;
 }
 
 init();
