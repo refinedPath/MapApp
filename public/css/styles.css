@@ -4,6 +4,19 @@ body {
   height: 100%;
 }
 
+#authView {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}
+
+#authView form {
+  width: 100%;
+  max-width: 24rem;
+}
+
 #mapContainer {
   position: absolute;
   inset: 0;
