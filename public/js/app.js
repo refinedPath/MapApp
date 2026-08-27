@@ -34,6 +34,8 @@ function init() {
   const loginPassword = document.getElementById('loginPassword');
   const loginError = document.getElementById('loginError');
   const mapContainer = document.getElementById('mapContainer');
+  const createPlaceDialog = document.getElementById('createPlaceDialog');
+  const cancelPlace = document.getElementById('cancelPlace');
 
   loginForm.addEventListener('submit', async (event) => {
     event.preventDefault();
@@ -70,6 +72,8 @@ function init() {
       console.error(err);
     }
   });
+
+  cancelPlace.addEventListener('click', () => { createPlaceDialog.close(); });
 }
 
 async function login(payload) {

@@ -15,15 +15,32 @@
 <body>
   <div id="mapContainer" hidden></div>
   <div id="authView">
-    <form id="loginForm" name="loginForm">
-      <label for="loginEmail">Email</label>
-      <input type="email" id="loginEmail" name="loginEmail" autocomplete="email" required>
-      <label for="loginPassword">Password</label>
-      <input type="password" id="loginPassword" name="loginPassword" autocomplete="current-password" required>
-      <p id="loginError" role="alert"></p>
-      <input type="submit" value="Login">
-    </form>
+    <article>
+      <h2>Login</h2>
+      <form id="loginForm" name="loginForm">
+        <label for="loginEmail">Email</label>
+        <input type="email" id="loginEmail" name="loginEmail" autocomplete="email" required>
+        <label for="loginPassword">Password</label>
+        <input type="password" id="loginPassword" name="loginPassword" autocomplete="current-password" required>
+        <p id="loginError" role="alert"></p>
+        <input type="submit" value="Login">
+      </form>
+    </article>
   </div>
+  <dialog id="createPlaceDialog" aria-labelledby="createPlaceTitle">
+    <article>
+      <h3 id="createPlaceTitle">New place</h3>
+      <form id="createPlaceForm" method="dialog">
+        <label for="placeName">Name *</label>
+        <input type="text" id="placeName" name="placeName" required>
+        <label for="placeDescription">Description</label>
+        <textarea id="placeDescription" name="placeDescription"></textarea>
+        <p id="createPlaceError" role="alert"></p>
+        <input type="submit" value="Save">
+        <input type="button" id="cancelPlace" value="Cancel">
+      </form>
+    </article>
+  </dialog>
 </body>
 
 </html>
