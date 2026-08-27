@@ -12,7 +12,17 @@
 </head>
 
 <body>
-  <div id="map"></div>
+  <div id="mapContainer" hidden></div>
+  <div id="authView">
+    <form id="loginForm" name="loginForm">
+      <label for="loginEmail">Email</label>
+      <input type="email" id="loginEmail" name="loginEmail" autocomplete="email" required>
+      <label for="loginPassword">Password</label>
+      <input type="password" id="loginPassword" name="loginPassword" autocomplete="current-password" required>
+      <p id="loginError" role="alert"></p>
+      <input type="submit" value="Login">
+    </form>
+  </div>
 </body>
 
 </html>
