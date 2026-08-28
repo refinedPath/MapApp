@@ -109,7 +109,7 @@ function init() {
       createPlaceForm.reset();
     } catch (err) {
       createPlaceError.textContent = err.message;
-      console.log(err);
+      console.error(err);
     }
   });
 
@@ -139,30 +139,28 @@ function init() {
   }
 }
 
+async function apiFetch(url, options = {}) {
+  const response = await fetch(url, options);
+  const data = await response.json();
+  if (!response.ok) throw new Error(data.error ?? `HTTP ${response.status}`);
+  return data;
+}
+
 async function authedFetch(url, options = {}) {
   const headers = {};
   if (options.headers) Object.assign(headers, options.headers);
   headers['Authorization'] = 'Bearer ' + state.token;
-
-  const response = await fetch(url, { ...options, headers });
-  const data = await response.json();
-  if (!response.ok) throw new Error(data.error ?? `HTTP ${response.status}`);
-
-  return data;
+  return apiFetch(url, { ...options, headers });
 }
 
 async function login(payload) {
-  const response = await fetch(`${API_BASE}/login`, {
+  const data = await apiFetch(`${API_BASE}/login`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
     },
     body: JSON.stringify(payload),
   });
-  const data = await response.json();
-
-  if (!response.ok) throw new Error(data.error ?? `HTTP ${response.status}`);
-
   return data.token;
 }
 
