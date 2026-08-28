@@ -99,11 +99,7 @@ function init() {
     };
 
     try {
-      const newPlace = await authedFetch(`${API_BASE}/places`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      });
+      const newPlace = await authedPostJSON(`${API_BASE}/places`, payload);
       addPlaceMarker(newPlace);
       createPlaceDialog.close();
       createPlaceForm.reset();
@@ -137,6 +133,14 @@ function init() {
     state.map.getCanvas().style.cursor = '';
     addPlaceBtn.textContent = 'Add place';
   }
+}
+
+async function authedPostJSON(url, obj) {
+  return authedFetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(obj),
+  });
 }
 
 async function apiFetch(url, options = {}) {
