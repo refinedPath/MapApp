@@ -15,8 +15,7 @@ final class RegisterController
 {
   public function __construct(
     private readonly UserRepositoryInterface $users,
-  ) {
-  }
+  ) {}
 
   public function __invoke(Request $request, Response $response): Response
   {
@@ -36,7 +35,7 @@ final class RegisterController
     }
     if ($password === '') {
       $errors['password'] = 'Password is required.';
-    } elseif (strlen($password) < 8) {
+    } elseif (mb_strlen($password) < 8) {
       $errors['password'] = 'Password must be at least 8 characters.';
     }
 
