@@ -99,7 +99,11 @@ function init() {
     };
 
     try {
-      const newPlace = await authedFetch(`${API_BASE}/places`, payload);
+      const newPlace = await authedFetch(`${API_BASE}/places`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
       addPlaceMarker(newPlace);
       createPlaceDialog.close();
       createPlaceForm.reset();
@@ -135,6 +139,18 @@ function init() {
   }
 }
 
+async function authedFetch(url, options = {}) {
+  const headers = {};
+  if (options.headers) Object.assign(headers, options.headers);
+  headers['Authorization'] = 'Bearer ' + state.token;
+
+  const response = await fetch(url, { ...options, headers });
+  const data = await response.json();
+  if (!response.ok) throw new Error(data.error ?? `HTTP ${response.status}`);
+
+  return data;
+}
+
 async function login(payload) {
   const response = await fetch(`${API_BASE}/login`, {
     method: 'POST',
@@ -151,33 +167,7 @@ async function login(payload) {
 }
 
 async function fetchPlaces() {
-  const response = await fetch(`${API_BASE}/places`, {
-    method: 'GET',
-    headers: {
-      'Authorization': 'Bearer ' + state.token,
-    },
-  });
-  const data = await response.json();
-
-  if (!response.ok) throw new Error(data.error ?? `HTTP ${response.status}`);
-
-  return data;
-}
-
-async function authedFetch(url, payload) {
-  const response = await fetch(url, {
-    method: 'POST',
-    headers: {
-      'Authorization': 'Bearer ' + state.token,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(payload),
-  });
-  const data = await response.json();
-
-  if (!response.ok) throw new Error(data.error ?? `HTTP ${response.status}`);
-
-  return data;
+  return authedFetch(`${API_BASE}/places`);
 }
 
 function addPlaceMarker(place) {
