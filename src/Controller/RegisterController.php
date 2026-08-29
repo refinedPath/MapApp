@@ -15,7 +15,8 @@ final class RegisterController
 {
   public function __construct(
     private readonly UserRepositoryInterface $users,
-  ) {}
+  ) {
+  }
 
   public function __invoke(Request $request, Response $response): Response
   {

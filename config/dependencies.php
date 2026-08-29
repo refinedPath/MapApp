@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 use App\Repository\PlaceRepository;
 use App\Repository\PlaceRepositoryInterface;
+use App\Repository\TagRepository;
+use App\Repository\TagRepositoryInterface;
 use App\Repository\UserRepository;
 use App\Repository\UserRepositoryInterface;
 use App\Service\TokenService;
@@ -38,5 +40,9 @@ return [
 
   PlaceRepositoryInterface::class => function (ContainerInterface $c): PlaceRepository {
     return new PlaceRepository($c->get(PDO::class));
+  },
+
+  TagRepositoryInterface::class => function (ContainerInterface $c): TagRepository {
+    return new TagRepository($c->get(PDO::class));
   }
 ];
