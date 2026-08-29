@@ -9,6 +9,7 @@ use Symfony\Component\Uid\Uuid;
 final readonly class Tag
 {
   public const int MAX_NAME_LENGTH = 255;
+  public const string DEFAULT_COLOR = '#525f7a';
 
   public function __construct(
     public Uuid $id,

@@ -3,7 +3,9 @@
 declare(strict_types=1);
 
 use App\Controller\CreatePlaceController;
+use App\Controller\CreateTagController;
 use App\Controller\ListPlacesController;
+use App\Controller\ListTagsController;
 use App\Controller\LoginController;
 use App\Controller\RegisterController;
 use App\Middleware\AuthMiddleware;
@@ -21,5 +23,8 @@ return function (App $app): void {
   $app->group('/api', function (RouteCollectorProxy $group): void {
     $group->post('/places', CreatePlaceController::class);
     $group->get('/places', ListPlacesController::class);
+
+    $group->post('/tags', CreateTagController::class);
+    $group->get('/tags', ListTagsController::class);
   })->add(AuthMiddleware::class);
 };
