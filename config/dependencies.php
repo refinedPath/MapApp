@@ -5,6 +5,8 @@ declare(strict_types=1);
 use App\Middleware\UuidParamMiddlewareFactory;
 use App\Repository\PlaceRepository;
 use App\Repository\PlaceRepositoryInterface;
+use App\Repository\PlaceTagRepository;
+use App\Repository\PlaceTagRepositoryInterface;
 use App\Repository\TagRepository;
 use App\Repository\TagRepositoryInterface;
 use App\Repository\UserRepository;
@@ -47,5 +49,9 @@ return [
 
   TagRepositoryInterface::class => function (ContainerInterface $c): TagRepository {
     return new TagRepository($c->get(PDO::class));
+  },
+
+  PlaceTagRepositoryInterface::class => function (ContainerInterface $c): PlaceTagRepository {
+    return new PlaceTagRepository($c->get(PDO::class));
   }
 ];

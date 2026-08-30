@@ -15,6 +15,8 @@ use Symfony\Component\Uid\Uuid;
 
 final class UuidParamMiddleware implements MiddlewareInterface
 {
+  public const ATTR_PREFIX = 'uuid.';
+
   /** @param list<string> $paramNames */
   private function __construct(
     private readonly ResponseFactoryInterface $responseFactory,
@@ -41,7 +43,7 @@ final class UuidParamMiddleware implements MiddlewareInterface
       } catch (\InvalidArgumentException $e) {
         return $this->notFound();
       }
-      $request = $request->withAttribute($name, $uuid);
+      $request = $request->withAttribute(self::ATTR_PREFIX . $name, $uuid);
     }
 
     return $handler->handle($request);
