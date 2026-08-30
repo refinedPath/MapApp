@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Middleware\UuidParamMiddlewareFactory;
 use App\Repository\PlaceRepository;
 use App\Repository\PlaceRepositoryInterface;
 use App\Repository\TagRepository;
@@ -37,6 +38,8 @@ return [
   },
 
   ResponseFactoryInterface::class => fn (): ResponseFactory => new ResponseFactory(),
+
+  UuidParamMiddlewareFactory::class => fn (ContainerInterface $c): UuidParamMiddlewareFactory => new UuidParamMiddlewareFactory($c->get(ResponseFactoryInterface::class)),
 
   PlaceRepositoryInterface::class => function (ContainerInterface $c): PlaceRepository {
     return new PlaceRepository($c->get(PDO::class));
