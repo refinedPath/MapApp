@@ -41,4 +41,20 @@ final class PlaceTagRepository implements PlaceTagRepositoryInterface
       'tag_id' => $tagId->toRfc4122(),
     ]);
   }
+
+  #[Override]
+  public function isAssigned(Uuid $placeId, Uuid $tagId): bool
+  {
+    $stmt = $this->pdo->prepare(
+      'SELECT 1 FROM place_tags
+        WHERE place_id = :place_id AND tag_id = :tag_id
+        LIMIT 1'
+    );
+    $stmt->execute([
+      'place_id' => $placeId->toRfc4122(),
+      'tag_id' => $tagId->toRfc4122(),
+    ]);
+
+    return $stmt->fetchColumn() !== false;
+  }
 }

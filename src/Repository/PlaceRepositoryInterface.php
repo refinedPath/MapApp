@@ -19,4 +19,8 @@ interface PlaceRepositoryInterface
 
   /** @return PlaceView[] */
   public function findAllForUserWithPrimaryTag(Uuid $userId): array;
+
+  public function setPrimaryTag(Uuid $placeId, Uuid $tagId): void;
+
+  public function clearPrimaryTag(Uuid $placeId): void;
 }

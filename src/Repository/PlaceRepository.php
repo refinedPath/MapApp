@@ -161,4 +161,25 @@ final class PlaceRepository implements PlaceRepositoryInterface
       updatedAt: new \DateTimeImmutable($row['updated_at']),
     );
   }
+
+  #[Override]
+  public function setPrimaryTag(Uuid $placeId, Uuid $tagId): void
+  {
+    $stmt = $this->pdo->prepare(
+      'UPDATE places SET primary_tag_id = :tag_id WHERE id = :place_id'
+    );
+    $stmt->execute([
+      'place_id' => $placeId->toRfc4122(),
+      'tag_id' => $tagId->toRfc4122(),
+    ]);
+  }
+
+  #[Override]
+  public function clearPrimaryTag(Uuid $placeId): void
+  {
+    $stmt = $this->pdo->prepare(
+      'UPDATE places SET primary_tag_id = NULL WHERE id = :place_id'
+    );
+    $stmt->execute(['place_id' => $placeId->toRfc4122()]);
+  }
 }
