@@ -6,10 +6,25 @@ namespace App\Repository;
 
 use App\Entity\Coordinates;
 use App\Entity\Place;
+use App\ReadModel\PlaceView;
 use Override;
 use PDO;
 use Symfony\Component\Uid\Uuid;
 
+/**
+ * @phpstan-type PlaceViewRow array{
+ *   id: string,
+ *   name: string,
+ *   description: string|null,
+ *   latitude: string,
+ *   longitude: string,
+ *   primary_tag_id: string|null,
+ *   primary_color: string|null,
+ *   primary_emoji: string|null,
+ *   created_at: string,
+ *   updated_at: string
+ * }
+ */
 final class PlaceRepository implements PlaceRepositoryInterface
 {
   public function __construct(
@@ -100,6 +115,48 @@ final class PlaceRepository implements PlaceRepositoryInterface
         latitude: (float) $row['latitude'],
         longitude: (float) $row['longitude'],
       ),
+      createdAt: new \DateTimeImmutable($row['created_at']),
+      updatedAt: new \DateTimeImmutable($row['updated_at']),
+    );
+  }
+
+  /** @return PlaceView[] */
+  #[Override]
+  public function findAllForUserWithPrimaryTag(Uuid $userId): array
+  {
+    $stmt = $this->pdo->prepare(
+      'SELECT p.id, p.name, p.description,
+                ST_Y(p.location::geometry) AS latitude,
+                ST_X(p.location::geometry) AS longitude,
+                p.primary_tag_id,
+                t.color AS primary_color,
+                t.emoji AS primary_emoji,
+                p.created_at, p.updated_at
+        FROM places p
+        LEFT JOIN tags t ON t.id = p.primary_tag_id
+        WHERE p.user_id = :user_id
+        ORDER BY p.created_at DESC'
+    );
+    $stmt->execute(['user_id' => $userId->toRfc4122()]);
+
+    /** @var list<PlaceViewRow> $rows */
+    $rows = $stmt->fetchAll();
+
+    return array_map(fn (array $row): PlaceView => $this->hydratePlaceView($row), $rows);
+  }
+
+  /** @param PlaceViewRow $row */
+  private function hydratePlaceView(array $row): PlaceView
+  {
+    return new PlaceView(
+      id: Uuid::fromString($row['id']),
+      name: $row['name'],
+      description: $row['description'],
+      latitude: (float) $row['latitude'],
+      longitude: (float) $row['longitude'],
+      primaryTagId: $row['primary_tag_id'] === null ? null : Uuid::fromString($row['primary_tag_id']),
+      primaryColor: $row['primary_color'],
+      primaryEmoji: $row['primary_emoji'],
       createdAt: new \DateTimeImmutable($row['created_at']),
       updatedAt: new \DateTimeImmutable($row['updated_at']),
     );

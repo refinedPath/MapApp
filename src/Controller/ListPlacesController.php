@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Controller;
 
-use App\Entity\Place;
-use App\Http\PlaceSerializer;
+use App\Http\PlaceViewSerializer;
+use App\ReadModel\PlaceView;
 use App\Repository\PlaceRepositoryInterface;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
@@ -24,10 +24,10 @@ final class ListPlacesController
     if (!$userId instanceof Uuid) {
       throw new \RuntimeException('Authenticated user id missing from request.');
     }
-    $places = $this->places->findAllForUser($userId);
+    $places = $this->places->findAllForUserWithPrimaryTag($userId);
 
     $response->getBody()->write((string) json_encode(
-      array_map(fn (Place $p): array => PlaceSerializer::toArray($p), $places)
+      array_map(fn (PlaceView $p): array => PlaceViewSerializer::toArray($p), $places)
     ));
     return $response->withHeader('Content-Type', 'application/json');
   }
