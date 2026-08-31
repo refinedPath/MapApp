@@ -23,4 +23,6 @@ interface PlaceRepositoryInterface
   public function setPrimaryTag(Uuid $placeId, Uuid $tagId): void;
 
   public function clearPrimaryTag(Uuid $placeId): void;
+
+  public function clearPrimaryTagIfMatches(Uuid $placeId, Uuid $tagId): void;
 }

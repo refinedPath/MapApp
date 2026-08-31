@@ -42,6 +42,7 @@ final class UnassignTagController
     }
 
     $this->placeTags->unassign($placeId, $tagId);
+    $this->places->clearPrimaryTagIfMatches($placeId, $tagId);
     return $response->withStatus(204)->withoutHeader('Content-Type');
   }
 }

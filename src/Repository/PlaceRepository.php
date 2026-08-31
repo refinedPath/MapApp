@@ -182,4 +182,16 @@ final class PlaceRepository implements PlaceRepositoryInterface
     );
     $stmt->execute(['place_id' => $placeId->toRfc4122()]);
   }
+
+  #[Override]
+  public function clearPrimaryTagIfMatches(Uuid $placeId, Uuid $tagId): void
+  {
+    $stmt = $this->pdo->prepare(
+      'UPDATE places SET primary_tag_id = NULL WHERE id = :place_id AND primary_tag_id = :tag_id'
+    );
+    $stmt->execute([
+      'place_id' => $placeId->toRfc4122(),
+      'tag_id' => $tagId->toRfc4122(),
+    ]);
+  }
 }
