@@ -179,6 +179,30 @@ async function fetchPlaceTags(placeId) {
   return authedFetch(`${API_BASE}/places/${placeId}/tags`);
 }
 
+function firstGrapheme(str) {
+  if (str === null) return null;
+  const seg = graphemeSegmenter.segment(str.trim());
+  return seg[Symbol.iterator]().next().value?.segment ?? null;
+}
+
+function renderTagChip(tag) {
+  const chip = el('div', {
+    classes: ['place-popup__tag'],
+    text: tag.name,
+  });
+  chip.style.backgroundColor = tag.color;
+
+  const emoji = firstGrapheme(tag.emoji);
+  if (emoji !== null) {
+    chip.insertBefore(
+      el('span', { classes: ['place-popup__tag-emoji'], text: emoji }),
+      chip.firstChild,
+    );
+  }
+
+  return chip;
+}
+
 function buildPlacePopup(place) {
   const rawDescription = place.description ?? null;
   const tagsSlot = el('div', { classes: ['place-popup__tags'] });
@@ -213,12 +237,7 @@ function addPlaceMarker(place) {
 
   const color = place.primary_color ?? '#525f7a';
 
-  let emoji = null;
-  const rawEmoji = place.primary_emoji ?? null;
-  if (rawEmoji !== null) {
-    const seg = graphemeSegmenter.segment(rawEmoji.trim());
-    emoji = seg[Symbol.iterator]().next().value?.segment ?? null;
-  }
+  const emoji = firstGrapheme(place.primary_emoji ?? null);
 
   const markerEl = el('div', { classes: ['place-marker'] });
 
@@ -254,7 +273,9 @@ function addPlaceMarker(place) {
       .then((tags) => {
         if (!popup.isOpen()) return;
         tagsSlot.textContent = '';
-        tagsSlot.appendChild(el('div', { text: `Loaded ${tags.length} tag(s).` }));
+        for (const tag of tags) {
+          tagsSlot.appendChild(renderTagChip(tag));
+        }
       })
       .catch((err) => {
         if (!popup.isOpen()) return;
