@@ -4,6 +4,8 @@ const API_BASE = '/api';
 
 const state = { map: null, token: null, addPlaceMode: false, pendingLngLat: null };
 
+const graphemeSegmenter = new Intl.Segmenter(undefined, { granularity: "grapheme" });
+
 /**
  * Create a DOM element with classes, text, attributes, dataset, and children.
  * @param {string} tag - HTML tag name
@@ -173,7 +175,44 @@ async function fetchPlaces() {
 }
 
 function addPlaceMarker(place) {
-  const popupDiv = el('div', {
+  const SVG_NS = 'http://www.w3.org/2000/svg';
+
+  const color = place.primary_color ?? '#525f7a';
+
+  let emoji = null;
+  const rawEmoji = place.primary_emoji ?? null;
+  if (rawEmoji !== null) {
+    const seg = graphemeSegmenter.segment(rawEmoji.trim());
+    emoji = seg[Symbol.iterator]().next().value?.segment ?? null;
+  }
+
+  const markerEl = el('div', { classes: ['place-marker'] });
+
+  const markerSvg = document.createElementNS(SVG_NS, 'svg');
+  markerSvg.setAttribute('class', 'place-marker__pin');
+  markerSvg.setAttribute('viewBox', '0 0 30 42');
+  markerSvg.setAttribute('width', '30');
+  markerSvg.setAttribute('height', '42');
+
+  const path = document.createElementNS(SVG_NS, 'path');
+  path.setAttribute(
+    'd',
+    'M15 0 C6.716 0 0 6.716 0 15 C0 23.5 15 42 15 42 ' +
+    'C15 42 30 23.5 30 15 C30 6.716 23.284 0 15 0 Z'
+  );
+  path.setAttribute('fill', color);
+  markerSvg.appendChild(path);
+
+  markerEl.appendChild(markerSvg);
+
+  if (emoji !== null) {
+    markerEl.appendChild(el('div', {
+      classes: ['place-marker__inner'],
+      text: emoji,
+    }));
+  }
+
+  const popupEl = el('div', {
     children: [
       el('div', {
         text: place.name
@@ -181,13 +220,26 @@ function addPlaceMarker(place) {
     ]
   });
 
-  if (place.description !== null) popupDiv.appendChild(el('div', {
-    text: place.description
+  const rawDescription = place.description ?? null;
+  if (rawDescription !== null) popupEl.appendChild(el('div', {
+    text: rawDescription
   }));
 
-  const popup = new maplibregl.Popup().setDOMContent(popupDiv);
+  const popup = new maplibregl.Popup(
+    {
+      offset: {
+        'bottom': [0, -48],
+        'bottom-left': [0, -48],
+        'bottom-right': [0, -48],
+        'top': [0, 6],
+        'top-left': [0, 6],
+        'top-right': [0, 6],
+        'left': [20, -27],
+        'right': [-20, -27],
+      },
+    }).setDOMContent(popupEl);
 
-  new maplibregl.Marker()
+  return new maplibregl.Marker({ element: markerEl, anchor: 'bottom' })
     .setLngLat([place.longitude, place.latitude])
     .setPopup(popup)
     .addTo(state.map);

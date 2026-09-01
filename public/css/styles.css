@@ -33,6 +33,68 @@ body {
   z-index: 999;
 }
 
+/* Custom place marker */
+.place-marker {
+  width: 30px;
+  height: 42px;
+  cursor: pointer;
+}
+
+.place-marker__pin {
+  display: block;
+  filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.35));
+}
+
+/* Anchors to the marker wrapper (which MapLibre positions absolutely) */
+.place-marker__inner {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 30px;
+  height: 30px;
+  /* the circular head region */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  line-height: 1;
+  pointer-events: none;
+}
+
+
+/* Place marker popup */
+.maplibregl-popup-content {
+  padding: 15px 15px 15px 15px;
+  border-radius: 8px;
+  font: 14px/1.4 system-ui, sans-serif;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.maplibregl-popup-tip {
+  position: relative;
+  z-index: 1;
+}
+
+:is(.maplibregl-popup-anchor-top,
+  .maplibregl-popup-anchor-top-left,
+  .maplibregl-popup-anchor-top-right) .maplibregl-popup-tip {
+  margin-bottom: -1px;
+}
+
+.maplibregl-popup-anchor-right .maplibregl-popup-tip {
+  margin-left: -1px;
+}
+
+:is(.maplibregl-popup-anchor-bottom,
+  .maplibregl-popup-anchor-bottom-left,
+  .maplibregl-popup-anchor-bottom-right) .maplibregl-popup-tip {
+  margin-top: -1px;
+}
+
+.maplibregl-popup-anchor-left .maplibregl-popup-tip {
+  margin-right: -1px;
+}
+
 /* restore some of the MapLibre's design overriden by Pico's global styling */
 .maplibregl-popup {
   color: black;
