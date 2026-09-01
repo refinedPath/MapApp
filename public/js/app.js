@@ -147,6 +147,7 @@ async function authedPostJSON(url, obj) {
 
 async function apiFetch(url, options = {}) {
   const response = await fetch(url, options);
+  if (response.status === 204) return null;
   const data = await response.json();
   if (!response.ok) throw new Error(data.error ?? `HTTP ${response.status}`);
   return data;
