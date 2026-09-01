@@ -175,6 +175,39 @@ async function fetchPlaces() {
   return authedFetch(`${API_BASE}/places`);
 }
 
+async function fetchPlaceTags(placeId) {
+  return authedFetch(`${API_BASE}/places/${placeId}/tags`);
+}
+
+function buildPlacePopup(place) {
+  const rawDescription = place.description ?? null;
+  const tagsSlot = el('div', { classes: ['place-popup__tags'] });
+
+  const children = [el('div', { text: place.name })];
+  if (rawDescription !== null) {
+    children.push(el('div', { text: rawDescription }));
+  }
+  children.push(tagsSlot);
+
+  const popupEl = el('div', { children });
+
+  const popup = new maplibregl.Popup(
+    {
+      offset: {
+        'bottom': [0, -48],
+        'bottom-left': [0, -48],
+        'bottom-right': [0, -48],
+        'top': [0, 6],
+        'top-left': [0, 6],
+        'top-right': [0, 6],
+        'left': [20, -27],
+        'right': [-20, -27],
+      },
+    }).setDOMContent(popupEl);
+
+  return { popup, tagsSlot };
+}
+
 function addPlaceMarker(place) {
   const SVG_NS = 'http://www.w3.org/2000/svg';
 
@@ -213,32 +246,23 @@ function addPlaceMarker(place) {
     }));
   }
 
-  const popupEl = el('div', {
-    children: [
-      el('div', {
-        text: place.name
-      }),
-    ]
+  const { popup, tagsSlot } = buildPlacePopup(place);
+
+  popup.on('open', () => {
+    tagsSlot.textContent = 'Loading tags…';
+    fetchPlaceTags(place.id)
+      .then((tags) => {
+        if (!popup.isOpen()) return;
+        tagsSlot.textContent = '';
+        tagsSlot.appendChild(el('div', { text: `Loaded ${tags.length} tag(s).` }));
+      })
+      .catch((err) => {
+        if (!popup.isOpen()) return;
+        tagsSlot.textContent = '';
+        tagsSlot.appendChild(el('div', { text: 'Could not load tags.' }));
+        console.error(err);
+      });
   });
-
-  const rawDescription = place.description ?? null;
-  if (rawDescription !== null) popupEl.appendChild(el('div', {
-    text: rawDescription
-  }));
-
-  const popup = new maplibregl.Popup(
-    {
-      offset: {
-        'bottom': [0, -48],
-        'bottom-left': [0, -48],
-        'bottom-right': [0, -48],
-        'top': [0, 6],
-        'top-left': [0, 6],
-        'top-right': [0, 6],
-        'left': [20, -27],
-        'right': [-20, -27],
-      },
-    }).setDOMContent(popupEl);
 
   return new maplibregl.Marker({ element: markerEl, anchor: 'bottom' })
     .setLngLat([place.longitude, place.latitude])
