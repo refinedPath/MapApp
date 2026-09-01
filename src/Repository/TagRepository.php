@@ -36,7 +36,7 @@ final class TagRepository implements TagRepositoryInterface
     $rows = $stmt->fetchAll();
 
     return array_map(
-      fn (array $row): Tag => $this->hydrate($row),
+      fn (array $row): Tag => TagHydrator::fromRow($row),
       $rows
     );
   }
@@ -57,7 +57,7 @@ final class TagRepository implements TagRepositoryInterface
     /** @var array<string, string>|false $row */
     $row = $stmt->fetch();
 
-    return $row === false ? null : $this->hydrate($row);
+    return $row === false ? null : TagHydrator::fromRow($row);
   }
 
   /**
@@ -86,19 +86,5 @@ final class TagRepository implements TagRepositoryInterface
       }
       throw $e;
     }
-  }
-
-  /** @param array<string, string> $row */
-  private function hydrate(array $row): Tag
-  {
-    return new Tag(
-      id: Uuid::fromString($row['id']),
-      userId: Uuid::fromString($row['user_id']),
-      name: $row['name'],
-      color: $row['color'],
-      emoji: $row['emoji'],
-      createdAt: new \DateTimeImmutable($row['created_at']),
-      updatedAt: new \DateTimeImmutable($row['updated_at']),
-    );
   }
 }
