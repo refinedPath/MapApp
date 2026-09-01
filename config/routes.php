@@ -8,6 +8,7 @@ use App\Controller\ClearPrimaryTagController;
 use App\Controller\CreatePlaceController;
 use App\Controller\CreateTagController;
 use App\Controller\ListPlacesController;
+use App\Controller\ListPlaceTagsController;
 use App\Controller\ListTagsController;
 use App\Controller\LoginController;
 use App\Controller\RegisterController;
@@ -41,6 +42,10 @@ return function (App $app): void {
       $g->put('/{tagId}', AssignTagController::class);
       $g->delete('/{tagId}', UnassignTagController::class);
     })->add($container->get(UuidParamMiddlewareFactory::class)->forParams(['placeId', 'tagId']));
+
+    $group->group('/places/{placeId}/tags', function (RouteCollectorProxy $g): void {
+      $g->get('', ListPlaceTagsController::class);
+    })->add($container->get(UuidParamMiddlewareFactory::class)->forParams(['placeId']));
 
     $group->group('/places/{placeId}/primary-tag', function (RouteCollectorProxy $g): void {
       $g->put('/{tagId}', AssignPrimaryTagController::class);
