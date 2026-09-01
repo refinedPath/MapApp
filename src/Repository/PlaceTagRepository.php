@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Repository;
 
+use App\Entity\Tag;
 use Override;
 use PDO;
 use Symfony\Component\Uid\Uuid;
@@ -56,5 +57,28 @@ final class PlaceTagRepository implements PlaceTagRepositoryInterface
     ]);
 
     return $stmt->fetchColumn() !== false;
+  }
+
+  #[Override]
+  public function findTagsForPlace(Uuid $placeId): array
+  {
+    $stmt = $this->pdo->prepare(
+      'SELECT t.id, t.user_id, t.name, t.color, t.emoji, t.created_at, t.updated_at
+        FROM place_tags pt
+        JOIN tags t ON t.id = pt.tag_id
+        WHERE pt.place_id = :place_id
+        ORDER BY t.name ASC'
+    );
+    $stmt->execute([
+      'place_id' => $placeId->toRfc4122(),
+    ]);
+
+    /** @var list<array<string, string>> $rows */
+    $rows = $stmt->fetchAll();
+
+    return array_map(
+      fn (array $row): Tag => TagHydrator::fromRow($row),
+      $rows
+    );
   }
 }
