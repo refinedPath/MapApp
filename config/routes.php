@@ -13,6 +13,7 @@ use App\Controller\ListTagsController;
 use App\Controller\LoginController;
 use App\Controller\RegisterController;
 use App\Controller\UnassignTagController;
+use App\Controller\UpdatePlaceController;
 use App\Middleware\AuthMiddleware;
 use App\Middleware\UuidParamMiddlewareFactory;
 use Slim\App;
@@ -37,6 +38,10 @@ return function (App $app): void {
 
     $group->post('/tags', CreateTagController::class);
     $group->get('/tags', ListTagsController::class);
+
+    $group->group('/places/{placeId}', function (RouteCollectorProxy $g): void {
+      $g->put('', UpdatePlaceController::class);
+    })->add($container->get(UuidParamMiddlewareFactory::class)->forParams(['placeId']));
 
     $group->group('/places/{placeId}/tags', function (RouteCollectorProxy $g): void {
       $g->put('/{tagId}', AssignTagController::class);

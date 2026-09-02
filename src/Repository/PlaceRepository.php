@@ -101,6 +101,30 @@ final class PlaceRepository implements PlaceRepositoryInterface
     ]);
   }
 
+  #[Override]
+  public function update(
+    Uuid $id,
+    Uuid $userId,
+    string $name,
+    ?string $description,
+    \DateTimeImmutable $updatedAt,
+  ): int {
+    $stmt = $this->pdo->prepare(
+      'UPDATE places
+      SET name = :name, description = :description, updated_at = :updated_at
+      WHERE id = :id AND user_id = :user_id'
+    );
+    $stmt->execute([
+      'id' => $id->toRfc4122(),
+      'user_id' => $userId->toRfc4122(),
+      'name' => $name,
+      'description' => $description,
+      'updated_at' => $updatedAt->format('Y-m-d H:i:sP'),
+    ]);
+
+    return $stmt->rowCount();
+  }
+
   /**
    * @param array<string, string> $row
    */

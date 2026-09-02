@@ -25,4 +25,12 @@ interface PlaceRepositoryInterface
   public function clearPrimaryTag(Uuid $placeId): void;
 
   public function clearPrimaryTagIfMatches(Uuid $placeId, Uuid $tagId): void;
+
+  public function update(
+    Uuid $id,
+    Uuid $userId,
+    string $name,
+    ?string $description,
+    \DateTimeImmutable $updatedAt,
+  ): int;
 }
