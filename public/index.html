@@ -44,6 +44,20 @@
       </form>
     </article>
   </dialog>
+  <dialog id="editPlaceDialog" aria-labelledby="editPlaceTitle">
+    <article>
+      <h3 id="editPlaceTitle">Edit place</h3>
+      <form id="editPlaceForm" method="dialog">
+        <label for="editPlaceName">Name *</label>
+        <input type="text" id="editPlaceName" name="editPlaceName" required>
+        <label for="editPlaceDescription">Description</label>
+        <textarea id="editPlaceDescription" name="editPlaceDescription"></textarea>
+        <p id="editPlaceError" role="alert"></p>
+        <input type="submit" value="Save">
+        <input type="button" id="cancelEditPlaceBtn" value="Cancel">
+      </form>
+    </article>
+  </dialog>
 </body>
 
 </html>

@@ -51,6 +51,12 @@
     placeDescription = document.getElementById('placeDescription');
     createPlaceError = document.getElementById('createPlaceError');
     cancelCreatePlaceBtn = document.getElementById('cancelCreatePlaceBtn');
+    editPlaceDialog = document.getElementById('editPlaceDialog');
+    editPlaceForm = document.getElementById('editPlaceForm');
+    editPlaceName = document.getElementById('editPlaceName');
+    editPlaceDescription = document.getElementById('editPlaceDescription');
+    editPlaceError = document.getElementById('editPlaceError');
+    cancelEditPlaceBtn = document.getElementById('cancelEditPlaceBtn');
 
     loginForm.addEventListener('submit', async (event) => {
       event.preventDefault();
@@ -130,6 +136,33 @@
         armAddPlaceMode();
       }
     });
+
+    editPlaceForm.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      editPlaceError.textContent = '';
+
+      const placeId = editPlaceDialog.dataset.placeId;
+      const payload = {
+        name: editPlaceName.value,
+        description: editPlaceDescription.value,
+      };
+
+      try {
+        await authedFetch(`${API_BASE}/places/${placeId}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        });
+        editPlaceDialog.close();
+      } catch (err) {
+        editPlaceError.textContent = err.message;
+        console.error(err);
+      }
+    });
+
+    cancelEditPlaceBtn.addEventListener('click', () => {
+      editPlaceDialog.close();
+    });
   }
 
   function armAddPlaceMode() {
@@ -192,6 +225,15 @@
     return seg[Symbol.iterator]().next().value?.segment ?? null;
   }
 
+  function openEditDialog(place) {
+    editPlaceError.textContent = '';
+    editPlaceName.value = place.name;
+    editPlaceDescription.value = place.description ?? '';
+    editPlaceDialog.dataset.placeId = place.id;
+
+    editPlaceDialog.showModal();
+  }
+
   function renderTagChip(tag) {
     const chip = el('div', {
       classes: ['place-popup__tag'],
@@ -214,12 +256,15 @@
   function buildPlacePopup(place) {
     const rawDescription = place.description ?? null;
     const tagsSlot = el('div', { classes: ['place-popup__tags'] });
+    const editBtn = el('button', { text: 'Edit' });
+    editBtn.addEventListener('click', () => openEditDialog(place));
 
     const children = [el('div', { text: place.name })];
     if (rawDescription !== null) {
       children.push(el('div', { text: rawDescription }));
     }
     children.push(tagsSlot);
+    children.push(editBtn);
 
     const popupEl = el('div', { children });
 
