@@ -188,7 +188,8 @@ function firstGrapheme(str) {
 function renderTagChip(tag) {
   const chip = el('div', {
     classes: ['place-popup__tag'],
-    text: tag.name,
+    title: tag.name,
+    children: [el('span', { classes: ['place-popup__tag-name'], text: tag.name })],
   });
   chip.style.backgroundColor = tag.color;
 

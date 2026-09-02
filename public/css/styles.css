@@ -68,10 +68,40 @@ body {
   border-radius: 8px;
   font: 14px/1.4 system-ui, sans-serif;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  max-width: 260px;
 }
 
+
 .place-popup__tags {
-  padding-top: 5px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 10px;
+}
+
+.place-popup__tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 10px;
+  border-radius: 12px;
+  font-size: 12px;
+  line-height: 1.6;
+  color: #fff;
+  max-width: 100%;
+  min-width: 0;
+}
+
+.place-popup__tag-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+}
+
+.place-popup__tag-emoji {
+  font-size: 12px;
+  line-height: 1;
 }
 
 .maplibregl-popup-tip {
