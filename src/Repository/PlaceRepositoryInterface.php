@@ -15,10 +15,14 @@ interface PlaceRepositoryInterface
 
   public function findByIdForUser(Uuid $id, Uuid $userId): ?Place;
 
-  public function create(Place $place): void;
-
   /** @return PlaceView[] */
   public function findAllForUserWithPrimaryTag(Uuid $userId): array;
+
+  public function findByIdForUserWithPrimaryTag(Uuid $id, Uuid $userId): ?PlaceView;
+
+  public function create(Place $place): void;
+
+  public function delete(Uuid $id, Uuid $userId): int;
 
   public function setPrimaryTag(Uuid $placeId, Uuid $tagId): void;
 
@@ -33,6 +37,4 @@ interface PlaceRepositoryInterface
     ?string $description,
     \DateTimeImmutable $updatedAt,
   ): int;
-
-  public function findByIdForUserWithPrimaryTag(Uuid $id, Uuid $userId): ?PlaceView;
 }

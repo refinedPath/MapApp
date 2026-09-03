@@ -80,70 +80,6 @@ final class PlaceRepository implements PlaceRepositoryInterface
     return $row === false ? null : $this->hydrate($row);
   }
 
-  #[Override]
-  public function create(Place $place): void
-  {
-    $stmt = $this->pdo->prepare(
-      'INSERT INTO places (id, user_id, name, description, location, created_at, updated_at)
-      VALUES (:id, :user_id, :name, :description,
-              ST_SetSRID(ST_MakePoint(:lng, :lat), 4326)::geography,
-              :created_at, :updated_at)'
-    );
-    $stmt->execute([
-      'id' => $place->id->toRfc4122(),
-      'user_id' => $place->userId->toRfc4122(),
-      'name' => $place->name,
-      'description' => $place->description,
-      'lng' => $place->location->longitude,
-      'lat' => $place->location->latitude,
-      'created_at' => $place->createdAt->format('Y-m-d H:i:sP'),
-      'updated_at' => $place->updatedAt->format('Y-m-d H:i:sP'),
-    ]);
-  }
-
-  #[Override]
-  public function update(
-    Uuid $id,
-    Uuid $userId,
-    string $name,
-    ?string $description,
-    \DateTimeImmutable $updatedAt,
-  ): int {
-    $stmt = $this->pdo->prepare(
-      'UPDATE places
-      SET name = :name, description = :description, updated_at = :updated_at
-      WHERE id = :id AND user_id = :user_id'
-    );
-    $stmt->execute([
-      'id' => $id->toRfc4122(),
-      'user_id' => $userId->toRfc4122(),
-      'name' => $name,
-      'description' => $description,
-      'updated_at' => $updatedAt->format('Y-m-d H:i:sP'),
-    ]);
-
-    return $stmt->rowCount();
-  }
-
-  /**
-   * @param array<string, string> $row
-   */
-  private function hydrate(array $row): Place
-  {
-    return new Place(
-      id: Uuid::fromString($row['id']),
-      userId: Uuid::fromString($row['user_id']),
-      name: $row['name'],
-      description: $row['description'],
-      location: new Coordinates(
-        latitude: (float) $row['latitude'],
-        longitude: (float) $row['longitude'],
-      ),
-      createdAt: new \DateTimeImmutable($row['created_at']),
-      updatedAt: new \DateTimeImmutable($row['updated_at']),
-    );
-  }
-
   /** @return PlaceView[] */
   #[Override]
   public function findAllForUserWithPrimaryTag(Uuid $userId): array
@@ -193,6 +129,84 @@ final class PlaceRepository implements PlaceRepositoryInterface
     $row = $stmt->fetch();
 
     return $row === false ? null : $this->hydratePlaceView($row);
+  }
+
+  #[Override]
+  public function create(Place $place): void
+  {
+    $stmt = $this->pdo->prepare(
+      'INSERT INTO places (id, user_id, name, description, location, created_at, updated_at)
+      VALUES (:id, :user_id, :name, :description,
+              ST_SetSRID(ST_MakePoint(:lng, :lat), 4326)::geography,
+              :created_at, :updated_at)'
+    );
+    $stmt->execute([
+      'id' => $place->id->toRfc4122(),
+      'user_id' => $place->userId->toRfc4122(),
+      'name' => $place->name,
+      'description' => $place->description,
+      'lng' => $place->location->longitude,
+      'lat' => $place->location->latitude,
+      'created_at' => $place->createdAt->format('Y-m-d H:i:sP'),
+      'updated_at' => $place->updatedAt->format('Y-m-d H:i:sP'),
+    ]);
+  }
+
+  #[Override]
+  public function update(
+    Uuid $id,
+    Uuid $userId,
+    string $name,
+    ?string $description,
+    \DateTimeImmutable $updatedAt,
+  ): int {
+    $stmt = $this->pdo->prepare(
+      'UPDATE places
+      SET name = :name, description = :description, updated_at = :updated_at
+      WHERE id = :id AND user_id = :user_id'
+    );
+    $stmt->execute([
+      'id' => $id->toRfc4122(),
+      'user_id' => $userId->toRfc4122(),
+      'name' => $name,
+      'description' => $description,
+      'updated_at' => $updatedAt->format('Y-m-d H:i:sP'),
+    ]);
+
+    return $stmt->rowCount();
+  }
+
+  #[Override]
+  public function delete(Uuid $id, Uuid $userId): int
+  {
+    $stmt = $this->pdo->prepare(
+      'DELETE FROM places WHERE id = :id AND user_id = :user_id'
+    );
+    $stmt->execute([
+      'id' => $id->toRfc4122(),
+      'user_id' => $userId->toRfc4122(),
+    ]);
+
+    return $stmt->rowCount();
+  }
+
+  /**
+   * @param array<string, string> $row
+   */
+  private function hydrate(array $row): Place
+  {
+    return new Place(
+      id: Uuid::fromString($row['id']),
+      userId: Uuid::fromString($row['user_id']),
+      name: $row['name'],
+      description: $row['description'],
+      location: new Coordinates(
+        latitude: (float) $row['latitude'],
+        longitude: (float) $row['longitude'],
+      ),
+      createdAt: new \DateTimeImmutable($row['created_at']),
+      updatedAt: new \DateTimeImmutable($row['updated_at']),
+    );
   }
 
   /** @param PlaceViewRow $row */

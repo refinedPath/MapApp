@@ -7,6 +7,7 @@ use App\Controller\AssignTagController;
 use App\Controller\ClearPrimaryTagController;
 use App\Controller\CreatePlaceController;
 use App\Controller\CreateTagController;
+use App\Controller\DeletePlaceController;
 use App\Controller\ListPlacesController;
 use App\Controller\ListPlaceTagsController;
 use App\Controller\ListTagsController;
@@ -43,6 +44,7 @@ return function (App $app): void {
     $group->group('/places/{placeId}', function (RouteCollectorProxy $g): void {
       $g->get('', ShowPlaceController::class);
       $g->put('', UpdatePlaceController::class);
+      $g->delete('', DeletePlaceController::class);
     })->add($container->get(UuidParamMiddlewareFactory::class)->forParams(['placeId']));
 
     $group->group('/places/{placeId}/tags', function (RouteCollectorProxy $g): void {
