@@ -12,6 +12,7 @@ use App\Controller\ListPlaceTagsController;
 use App\Controller\ListTagsController;
 use App\Controller\LoginController;
 use App\Controller\RegisterController;
+use App\Controller\ShowPlaceController;
 use App\Controller\UnassignTagController;
 use App\Controller\UpdatePlaceController;
 use App\Middleware\AuthMiddleware;
@@ -40,6 +41,7 @@ return function (App $app): void {
     $group->get('/tags', ListTagsController::class);
 
     $group->group('/places/{placeId}', function (RouteCollectorProxy $g): void {
+      $g->get('', ShowPlaceController::class);
       $g->put('', UpdatePlaceController::class);
     })->add($container->get(UuidParamMiddlewareFactory::class)->forParams(['placeId']));
 

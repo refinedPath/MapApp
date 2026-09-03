@@ -33,4 +33,6 @@ interface PlaceRepositoryInterface
     ?string $description,
     \DateTimeImmutable $updatedAt,
   ): int;
+
+  public function findByIdForUserWithPrimaryTag(Uuid $id, Uuid $userId): ?PlaceView;
 }

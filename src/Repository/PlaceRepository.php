@@ -169,6 +169,32 @@ final class PlaceRepository implements PlaceRepositoryInterface
     return array_map(fn (array $row): PlaceView => $this->hydratePlaceView($row), $rows);
   }
 
+  #[Override]
+  public function findByIdForUserWithPrimaryTag(Uuid $id, Uuid $userId): ?PlaceView
+  {
+    $stmt = $this->pdo->prepare(
+      'SELECT p.id, p.name, p.description,
+                ST_Y(p.location::geometry) AS latitude,
+                ST_X(p.location::geometry) AS longitude,
+                p.primary_tag_id,
+                t.color AS primary_color,
+                t.emoji AS primary_emoji,
+                p.created_at, p.updated_at
+        FROM places p
+        LEFT JOIN tags t ON t.id = p.primary_tag_id
+        WHERE p.id = :id AND p.user_id = :user_id'
+    );
+    $stmt->execute([
+      'id' => $id->toRfc4122(),
+      'user_id' => $userId->toRfc4122(),
+    ]);
+
+    /** @var PlaceViewRow|false $row */
+    $row = $stmt->fetch();
+
+    return $row === false ? null : $this->hydratePlaceView($row);
+  }
+
   /** @param PlaceViewRow $row */
   private function hydratePlaceView(array $row): PlaceView
   {
