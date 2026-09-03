@@ -192,6 +192,10 @@ body {
   margin-top: 1rem;
 }
 
+.modal-actions--end {
+  justify-content: flex-end;
+}
+
 .modal-actions__primary {
   display: flex;
   gap: 10px;

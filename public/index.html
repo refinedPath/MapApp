@@ -39,8 +39,12 @@
         <label for="placeDescription">Description</label>
         <textarea id="placeDescription" name="placeDescription"></textarea>
         <p id="createPlaceError" role="alert"></p>
-        <input type="submit" value="Save">
-        <input type="button" id="cancelCreatePlaceBtn" value="Cancel">
+        <div class="modal-actions modal-actions--end">
+          <div class="modal-actions__primary">
+            <input type="button" id="cancelCreatePlaceBtn" class="outline secondary" value="Cancel">
+            <input type="submit" value="Save">
+          </div>
+        </div>
       </form>
     </article>
   </dialog>
