@@ -8,6 +8,7 @@
   const graphemeSegmenter = new Intl.Segmenter(undefined, { granularity: "grapheme" });
 
   // DOM refs — assigned in init() after the DOM is ready.
+  let appConfig = null;
   let authView, loginForm, loginEmail, loginPassword, loginError;
   let mapContainer, mapCustomControls, addPlaceBtn;
   let createPlaceDialog, createPlaceForm, placeName, placeDescription, createPlaceError, cancelCreatePlaceBtn;
@@ -92,6 +93,7 @@
 
       try {
         state.token = await login(payload);
+        appConfig = await fetchConfig();
 
         authView.hidden = true;
         mapContainer.hidden = false;
@@ -219,9 +221,23 @@
       manageTagsDialog.close();
     });
 
-    tagForm.addEventListener('submit', (event) => {
+    tagForm.addEventListener('submit', async (event) => {
       event.preventDefault();
-      // create / edit wiring lands in the next step
+      tagFormError.textContent = '';
+
+      try {
+        await authedPostJSON(`${API_BASE}/tags`, {
+          name: tagFormName.value,
+          color: tagFormColor.value,
+          emoji: tagFormEmoji.value,
+        });
+        manageTags = await fetchTagsWithCounts();
+        renderTagManager();
+        resetTagForm();
+      } catch (err) {
+        tagFormError.textContent = err.message;
+        console.error(err);
+      }
     });
   }
 
@@ -289,6 +305,10 @@
 
   async function fetchTagsWithCounts() {
     return authedFetch(`${API_BASE}/tags/counts`);
+  }
+
+  async function fetchConfig() {
+    return authedFetch(`${API_BASE}/config`);
   }
 
   function firstGrapheme(str) {
@@ -454,8 +474,16 @@
     }
   }
 
-  async function openManageTags() {
+  function resetTagForm() {
+    tagForm.reset();
+    tagFormColor.value = appConfig.tag.default_color;
     tagFormError.textContent = '';
+    tagFormSubmit.value = 'Add tag';
+    tagFormCancelBtn.hidden = true;
+  }
+
+  async function openManageTags() {
+    resetTagForm();
     tagManagerList.textContent = 'Loading tags…';
     manageTagsDialog.showModal();
 
