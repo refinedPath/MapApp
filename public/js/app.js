@@ -17,6 +17,7 @@
   let editPlaceTags = [];
   let editPlaceAllTags = [];
   let manageTags = [];
+  let manageTagsDirty = false;
   let openPopup = null;
 
   /**
@@ -221,6 +222,16 @@
       manageTagsDialog.close();
     });
 
+    manageTagsDialog.addEventListener('close', async () => {
+      if (!manageTagsDirty) return;
+      manageTagsDirty = false;
+      try {
+        await resyncMarkers();
+      } catch (err) {
+        console.error(err);
+      }
+    });
+
     tagFormCancelBtn.addEventListener('click', () => {
       resetTagForm();
     });
@@ -243,6 +254,7 @@
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(payload),
           });
+          manageTagsDirty = true;
         } else {
           await authedPostJSON(`${API_BASE}/tags`, payload);
         }
@@ -500,6 +512,7 @@
 
   async function openManageTags() {
     resetTagForm();
+    manageTagsDirty = false;
     tagManagerList.textContent = 'Loading tags…';
     manageTagsDialog.showModal();
 
@@ -574,6 +587,7 @@
     tagFormError.textContent = '';
     try {
       await authedFetch(`${API_BASE}/tags/${tag.id}`, { method: 'DELETE' });
+      manageTagsDirty = true;
       if (tagForm.dataset.editingId === tag.id) resetTagForm();
       manageTags = await fetchTagsWithCounts();
       renderTagManager();
@@ -695,6 +709,25 @@
     addPlaceMarker(freshPlace);
 
     if (wasOpen) state.markers[placeId].togglePopup();
+  }
+
+  async function resyncMarkers() {
+    const reopenId = openPopup ? openPopup.placeId : null;
+    const places = await fetchPlaces();
+
+    for (const id of Object.keys(state.markers)) {
+      state.markers[id].remove();
+    }
+    state.markers = {};
+    openPopup = null;
+
+    for (const place of places) {
+      addPlaceMarker(place);
+    }
+
+    if (reopenId !== null && state.markers[reopenId]) {
+      state.markers[reopenId].togglePopup();
+    }
   }
 
   init();
