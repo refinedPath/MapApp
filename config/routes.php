@@ -5,6 +5,7 @@ declare(strict_types=1);
 use App\Controller\AssignPrimaryTagController;
 use App\Controller\AssignTagController;
 use App\Controller\ClearPrimaryTagController;
+use App\Controller\ConfigController;
 use App\Controller\CreatePlaceController;
 use App\Controller\CreateTagController;
 use App\Controller\DeletePlaceController;
@@ -37,6 +38,8 @@ return function (App $app): void {
 
   // protected routes - require a valid token
   $app->group('/api', function (RouteCollectorProxy $group) use ($container): void {
+    $group->get('/config', ConfigController::class);
+
     $group->post('/places', CreatePlaceController::class);
     $group->get('/places', ListPlacesController::class);
 
