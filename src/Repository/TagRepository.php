@@ -87,4 +87,54 @@ final class TagRepository implements TagRepositoryInterface
       throw $e;
     }
   }
+
+  /**
+   * @throws TagNameAlreadyExistsException
+   */
+  #[Override]
+  public function update(
+    Uuid $id,
+    Uuid $userId,
+    string $name,
+    string $color,
+    ?string $emoji,
+    \DateTimeImmutable $updatedAt,
+  ): int {
+    $stmt = $this->pdo->prepare(
+      'UPDATE tags
+      SET name = :name, color = :color, emoji = :emoji, updated_at = :updated_at
+      WHERE id = :id AND user_id = :user_id'
+    );
+    try {
+      $stmt->execute([
+        'id' => $id->toRfc4122(),
+        'user_id' => $userId->toRfc4122(),
+        'name' => $name,
+        'color' => $color,
+        'emoji' => $emoji,
+        'updated_at' => $updatedAt->format('Y-m-d H:i:sP'),
+      ]);
+    } catch (PDOException $e) {
+      if (($e->errorInfo[0] ?? null) === '23505') {
+        throw new TagNameAlreadyExistsException('Tag name already exists.', 0, $e);
+      }
+      throw $e;
+    }
+
+    return $stmt->rowCount();
+  }
+
+  #[Override]
+  public function delete(Uuid $id, Uuid $userId): int
+  {
+    $stmt = $this->pdo->prepare(
+      'DELETE FROM tags WHERE id = :id AND user_id = :user_id'
+    );
+    $stmt->execute([
+      'id' => $id->toRfc4122(),
+      'user_id' => $userId->toRfc4122(),
+    ]);
+
+    return $stmt->rowCount();
+  }
 }

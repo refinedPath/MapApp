@@ -8,13 +8,14 @@ use App\Entity\Tag;
 use App\Exception\TagNameAlreadyExistsException;
 use App\Http\Responder;
 use App\Http\TagSerializer;
+use App\Middleware\UuidParamMiddleware;
 use App\Repository\TagRepositoryInterface;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use RuntimeException;
 use Symfony\Component\Uid\Uuid;
 
-final class CreateTagController
+final class UpdateTagController
 {
   public function __construct(
     private readonly TagRepositoryInterface $tags,
@@ -26,6 +27,10 @@ final class CreateTagController
     $userId = $request->getAttribute('userId');
     if (!$userId instanceof Uuid) {
       throw new RuntimeException('Authenticated user id missing from request.');
+    }
+    $tagId = $request->getAttribute(UuidParamMiddleware::ATTR_PREFIX . 'tagId');
+    if (!$tagId instanceof Uuid) {
+      throw new RuntimeException('Tag id missing from request.');
     }
     $data = (array) $request->getParsedBody();
 
@@ -57,22 +62,36 @@ final class CreateTagController
       return Responder::json($response, ['errors' => $errors], 422);
     }
 
+    $existing = $this->tags->findByIdForUser($tagId, $userId);
+    if ($existing === null) {
+      return Responder::json($response, ['error' => 'Not found.'], 404);
+    }
+
     $now = new \DateTimeImmutable();
-    $tag = new Tag(
-      id: Uuid::v7(),
-      userId: $userId,
-      name: $name,
-      color: $color,
-      emoji: $emoji,
-      createdAt: $now,
-      updatedAt: $now,
-    );
+
     try {
-      $this->tags->create($tag);
+      $this->tags->update(
+        id: $tagId,
+        userId: $userId,
+        name: $name,
+        color: $color,
+        emoji: $emoji,
+        updatedAt: $now,
+      );
     } catch (TagNameAlreadyExistsException $e) {
       return Responder::json($response, ['error' => 'Tag with this name already exists.'], 409);
     }
 
-    return Responder::json($response, TagSerializer::toArray($tag), 201);
+    $updated = new Tag(
+      id: $existing->id,
+      userId: $existing->userId,
+      name: $name,
+      color: $color,
+      emoji: $emoji,
+      createdAt: $existing->createdAt,
+      updatedAt: $now,
+    );
+
+    return Responder::json($response, TagSerializer::toArray($updated));
   }
 }

@@ -15,4 +15,15 @@ interface TagRepositoryInterface
   public function findByIdForUser(Uuid $id, Uuid $userId): ?Tag;
 
   public function create(Tag $tag): void;
+
+  public function update(
+    Uuid $id,
+    Uuid $userId,
+    string $name,
+    string $color,
+    ?string $emoji,
+    \DateTimeImmutable $updatedAt,
+  ): int;
+
+  public function delete(Uuid $id, Uuid $userId): int;
 }

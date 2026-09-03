@@ -8,6 +8,7 @@ use App\Controller\ClearPrimaryTagController;
 use App\Controller\CreatePlaceController;
 use App\Controller\CreateTagController;
 use App\Controller\DeletePlaceController;
+use App\Controller\DeleteTagController;
 use App\Controller\ListPlacesController;
 use App\Controller\ListPlaceTagsController;
 use App\Controller\ListTagsController;
@@ -16,6 +17,7 @@ use App\Controller\RegisterController;
 use App\Controller\ShowPlaceController;
 use App\Controller\UnassignTagController;
 use App\Controller\UpdatePlaceController;
+use App\Controller\UpdateTagController;
 use App\Middleware\AuthMiddleware;
 use App\Middleware\UuidParamMiddlewareFactory;
 use Slim\App;
@@ -46,6 +48,11 @@ return function (App $app): void {
       $g->put('', UpdatePlaceController::class);
       $g->delete('', DeletePlaceController::class);
     })->add($container->get(UuidParamMiddlewareFactory::class)->forParams(['placeId']));
+
+    $group->group('/tags/{tagId}', function (RouteCollectorProxy $g): void {
+      $g->put('', UpdateTagController::class);
+      $g->delete('', DeleteTagController::class);
+    })->add($container->get(UuidParamMiddlewareFactory::class)->forParams(['tagId']));
 
     $group->group('/places/{placeId}/tags', function (RouteCollectorProxy $g): void {
       $g->put('/{tagId}', AssignTagController::class);
