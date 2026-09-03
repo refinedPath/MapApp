@@ -541,12 +541,7 @@
   }
 
   function renderTagManagerRow(tag) {
-    const swatch = el('span', { classes: ['tag-manager__swatch'] });
-    swatch.style.backgroundColor = tag.color;
-    const emoji = firstGrapheme(tag.emoji);
-    if (emoji !== null) swatch.textContent = emoji;
-
-    const name = el('span', { classes: ['tag-manager__name'], text: tag.name, title: tag.name });
+    const chip = renderTagChip(tag);
 
     const count = el('span', {
       classes: ['tag-manager__count'],
@@ -560,7 +555,7 @@
 
     const row = el('div', {
       classes: ['tag-manager__row'],
-      children: [swatch, name, count, editBtn, deleteBtn],
+      children: [chip, count, editBtn, deleteBtn],
     });
     if (tag.assignment_count === 0) row.classList.add('tag-manager__row--unused');
 
