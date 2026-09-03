@@ -61,9 +61,13 @@
           <div id="editPlaceAllTagsList"></div>
         </section>
         <p id="editPlaceError" role="alert"></p>
-        <input type="submit" value="Save">
-        <input type="button" id="cancelEditPlaceBtn" value="Cancel">
-        <input type="button" id="deleteEditPlaceBtn" value="Delete place">
+        <div class="modal-actions">
+          <input type="button" id="deleteEditPlaceBtn" class="outline secondary btn-danger" value="Delete place">
+          <div class="modal-actions__primary">
+            <input type="button" id="cancelEditPlaceBtn" class="outline secondary" value="Cancel">
+            <input type="submit" value="Save">
+          </div>
+        </div>
       </form>
     </article>
   </dialog>

@@ -182,3 +182,38 @@ body {
   gap: 6px;
   margin-top: 6px;
 }
+
+/* Edit modal action row */
+.modal-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  margin-top: 1rem;
+}
+
+.modal-actions__primary {
+  display: flex;
+  gap: 10px;
+}
+
+/* content-width buttons with breathing room (override Pico's full-width) */
+.modal-actions input {
+  width: auto;
+  margin: 0;
+  padding: 6px 10px;
+}
+
+/* destructive: red outline + text on top of Pico's outline secondary */
+.btn-danger {
+  --pico-color: #c0392b;
+  border-color: #c0392b;
+  color: #c0392b;
+}
+
+.popup-edit-btn {
+  width: auto;
+  margin-top: 8px;
+  padding: 3px 10px;
+  font-size: 12px;
+}

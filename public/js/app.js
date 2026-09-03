@@ -423,7 +423,7 @@
   function buildPlacePopup(place) {
     const rawDescription = place.description ?? null;
     const tagsSlot = el('div', { classes: ['place-popup__tags'] });
-    const editBtn = el('button', { text: 'Edit' });
+    const editBtn = el('button', { classes: ['popup-edit-btn'], text: '✎ Edit' });
     editBtn.addEventListener('click', () => openEditDialog(place));
 
     const children = [el('div', { text: place.name })];
