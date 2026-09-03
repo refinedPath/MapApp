@@ -11,7 +11,8 @@
   let authView, loginForm, loginEmail, loginPassword, loginError;
   let mapContainer, mapCustomControls, addPlaceBtn;
   let createPlaceDialog, createPlaceForm, placeName, placeDescription, createPlaceError, cancelCreatePlaceBtn;
-  let editPlaceDialog, editPlaceForm, editPlaceName, editPlaceDescription, editPlaceError, cancelEditPlaceBtn;
+  let editPlaceDialog, editPlaceForm, editPlaceName, editPlaceDescription, editPlaceTagsList, editPlaceError, cancelEditPlaceBtn;
+  let editPlaceTags = [];
 
   /**
    * Create a DOM element with classes, text, attributes, dataset, and children.
@@ -55,6 +56,7 @@
     editPlaceForm = document.getElementById('editPlaceForm');
     editPlaceName = document.getElementById('editPlaceName');
     editPlaceDescription = document.getElementById('editPlaceDescription');
+    editPlaceTagsList = document.getElementById('editPlaceTagsList');
     editPlaceError = document.getElementById('editPlaceError');
     cancelEditPlaceBtn = document.getElementById('cancelEditPlaceBtn');
 
@@ -225,13 +227,26 @@
     return seg[Symbol.iterator]().next().value?.segment ?? null;
   }
 
-  function openEditDialog(place) {
+  async function openEditDialog(place) {
     editPlaceError.textContent = '';
     editPlaceName.value = place.name;
     editPlaceDescription.value = place.description ?? '';
     editPlaceDialog.dataset.placeId = place.id;
+    editPlaceDialog.dataset.primaryTagId = place.primary_tag_id ?? '';
 
+    editPlaceTagsList.textContent = 'Loading tags…';
     editPlaceDialog.showModal();
+
+    try {
+      const tags = await fetchPlaceTags(place.id);
+      if (!editPlaceDialog.open) return;
+      editPlaceTags = tags;
+      renderAssignedTags(tags, editPlaceDialog.dataset.primaryTagId || null);
+    } catch (err) {
+      if (!editPlaceDialog.open) return;
+      editPlaceTagsList.textContent = 'Could not load tags.';
+      console.error(err);
+    }
   }
 
   function renderTagChip(tag) {
@@ -251,6 +266,83 @@
     }
 
     return chip;
+  }
+
+  function renderEditableTagChip(tag, controls) {
+    const chip = renderTagChip(tag);
+    for (const control of controls) {
+      chip.appendChild(control);
+    }
+    return chip;
+  }
+
+  function tagControlButton(glyph, label, onClick) {
+    const btn = el('button', {
+      classes: ['tag-chip__control'],
+      text: glyph,
+      title: label,
+      attrs: { type: 'button', 'aria-label': label },
+    });
+    btn.addEventListener('click', onClick);
+    return btn;
+  }
+
+  function renderAssignedTagChip(tag, primaryTagId) {
+    const isPrimary = tag.id === primaryTagId;
+
+    const togglePrimary = tagControlButton(
+      isPrimary ? '★' : '☆',
+      isPrimary ? 'Unset primary' : 'Set as primary',
+      async () => {
+        const placeId = editPlaceDialog.dataset.placeId;
+        const currentPrimary = editPlaceDialog.dataset.primaryTagId || null;
+        const makePrimary = tag.id !== currentPrimary;
+
+        try {
+          if (makePrimary) {
+            await authedFetch(`${API_BASE}/places/${placeId}/primary-tag/${tag.id}`, {
+              method: 'PUT',
+            });
+            editPlaceDialog.dataset.primaryTagId = tag.id;
+          } else {
+            await authedFetch(`${API_BASE}/places/${placeId}/primary-tag`, {
+              method: 'DELETE',
+            });
+            editPlaceDialog.dataset.primaryTagId = '';
+          }
+          renderAssignedTags(editPlaceTags, editPlaceDialog.dataset.primaryTagId || null);
+        } catch (err) {
+          editPlaceError.textContent = err.message;
+          console.error(err);
+        }
+      },
+    );
+
+    const unassignTag = tagControlButton('⊖', 'Unassign tag', async (event) => {
+      const chip = event.currentTarget.closest('.place-popup__tag');
+      const placeId = editPlaceDialog.dataset.placeId;
+      try {
+        await authedFetch(`${API_BASE}/places/${placeId}/tags/${tag.id}`, {
+          method: 'DELETE',
+        });
+        chip?.remove();
+        if (editPlaceDialog.dataset.primaryTagId === tag.id) {
+          editPlaceDialog.dataset.primaryTagId = '';
+        }
+      } catch (err) {
+        editPlaceError.textContent = err.message;
+        console.error(err);
+      }
+    });
+
+    return renderEditableTagChip(tag, [togglePrimary, unassignTag]);
+  }
+
+  function renderAssignedTags(tags, primaryTagId) {
+    editPlaceTagsList.textContent = '';
+    for (const tag of tags) {
+      editPlaceTagsList.appendChild(renderAssignedTagChip(tag, primaryTagId));
+    }
   }
 
   function buildPlacePopup(place) {
