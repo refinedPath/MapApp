@@ -11,8 +11,9 @@
   let authView, loginForm, loginEmail, loginPassword, loginError;
   let mapContainer, mapCustomControls, addPlaceBtn;
   let createPlaceDialog, createPlaceForm, placeName, placeDescription, createPlaceError, cancelCreatePlaceBtn;
-  let editPlaceDialog, editPlaceForm, editPlaceName, editPlaceDescription, editPlaceTagsList, editPlaceError, cancelEditPlaceBtn;
+  let editPlaceDialog, editPlaceForm, editPlaceName, editPlaceDescription, editPlaceTagsList, editPlaceAllTagsList, editPlaceError, cancelEditPlaceBtn;
   let editPlaceTags = [];
+  let editPlaceAllTags = [];
 
   /**
    * Create a DOM element with classes, text, attributes, dataset, and children.
@@ -57,6 +58,7 @@
     editPlaceName = document.getElementById('editPlaceName');
     editPlaceDescription = document.getElementById('editPlaceDescription');
     editPlaceTagsList = document.getElementById('editPlaceTagsList');
+    editPlaceAllTagsList = document.getElementById('editPlaceAllTagsList');
     editPlaceError = document.getElementById('editPlaceError');
     cancelEditPlaceBtn = document.getElementById('cancelEditPlaceBtn');
 
@@ -221,6 +223,10 @@
     return authedFetch(`${API_BASE}/places/${placeId}/tags`);
   }
 
+  async function fetchTags() {
+    return authedFetch(`${API_BASE}/tags`);
+  }
+
   function firstGrapheme(str) {
     if (str === null) return null;
     const seg = graphemeSegmenter.segment(str.trim());
@@ -238,10 +244,14 @@
     editPlaceDialog.showModal();
 
     try {
-      const tags = await fetchPlaceTags(place.id);
+      const [tags, allTags] = await Promise.all([
+        fetchPlaceTags(place.id),
+        fetchTags(),
+      ]);
       if (!editPlaceDialog.open) return;
       editPlaceTags = tags;
-      renderAssignedTags(tags, editPlaceDialog.dataset.primaryTagId || null);
+      editPlaceAllTags = allTags;
+      renderTags(editPlaceDialog.dataset.primaryTagId || null);
     } catch (err) {
       if (!editPlaceDialog.open) return;
       editPlaceTagsList.textContent = 'Could not load tags.';
@@ -310,7 +320,7 @@
             });
             editPlaceDialog.dataset.primaryTagId = '';
           }
-          renderAssignedTags(editPlaceTags, editPlaceDialog.dataset.primaryTagId || null);
+          renderTags(editPlaceDialog.dataset.primaryTagId || null);
         } catch (err) {
           editPlaceError.textContent = err.message;
           console.error(err);
@@ -318,17 +328,17 @@
       },
     );
 
-    const unassignTag = tagControlButton('⊖', 'Unassign tag', async (event) => {
-      const chip = event.currentTarget.closest('.place-popup__tag');
+    const unassignTag = tagControlButton('⊖', 'Unassign tag', async () => {
       const placeId = editPlaceDialog.dataset.placeId;
       try {
         await authedFetch(`${API_BASE}/places/${placeId}/tags/${tag.id}`, {
           method: 'DELETE',
         });
-        chip?.remove();
+        editPlaceTags = editPlaceTags.filter((t) => t.id !== tag.id);
         if (editPlaceDialog.dataset.primaryTagId === tag.id) {
           editPlaceDialog.dataset.primaryTagId = '';
         }
+        renderTags(editPlaceDialog.dataset.primaryTagId || null);
       } catch (err) {
         editPlaceError.textContent = err.message;
         console.error(err);
@@ -338,10 +348,35 @@
     return renderEditableTagChip(tag, [togglePrimary, unassignTag]);
   }
 
-  function renderAssignedTags(tags, primaryTagId) {
+  function renderUnassignedTagChip(tag) {
+    const assignTag = tagControlButton('⊕', 'Assign tag', async () => {
+      const placeId = editPlaceDialog.dataset.placeId;
+      try {
+        await authedFetch(`${API_BASE}/places/${placeId}/tags/${tag.id}`, {
+          method: 'PUT',
+        });
+        editPlaceTags = [...editPlaceTags, tag];
+        renderTags(editPlaceDialog.dataset.primaryTagId || null);
+      } catch (err) {
+        editPlaceError.textContent = err.message;
+        console.error(err);
+      }
+    });
+    return renderEditableTagChip(tag, [assignTag]);
+  }
+
+  function renderTags(primaryTagId) {
+    const assignedIds = new Set(editPlaceTags.map((t) => t.id));
+
     editPlaceTagsList.textContent = '';
-    for (const tag of tags) {
+    for (const tag of editPlaceTags) {
       editPlaceTagsList.appendChild(renderAssignedTagChip(tag, primaryTagId));
+    }
+
+    editPlaceAllTagsList.textContent = '';
+    for (const tag of editPlaceAllTags) {
+      if (assignedIds.has(tag.id)) continue;
+      editPlaceAllTagsList.appendChild(renderUnassignedTagChip(tag));
     }
   }
 

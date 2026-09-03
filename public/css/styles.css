@@ -174,3 +174,11 @@ body {
   outline-offset: 1px;
   border-radius: 2px;
 }
+
+#editPlaceTagsList,
+#editPlaceAllTagsList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 6px;
+}
