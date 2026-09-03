@@ -6,6 +6,7 @@ namespace App\Controller;
 
 use App\Entity\Tag;
 use App\Exception\TagNameAlreadyExistsException;
+use App\Http\Responder;
 use App\Http\TagSerializer;
 use App\Repository\TagRepositoryInterface;
 use Psr\Http\Message\ResponseInterface as Response;
@@ -53,8 +54,7 @@ final class CreateTagController
     }
 
     if ($errors !== []) {
-      $response->getBody()->write((string) json_encode(['errors' => $errors]));
-      return $response->withHeader('Content-Type', 'application/json')->withStatus(422);
+      return Responder::json($response, ['errors' => $errors], 422);
     }
 
     $now = new \DateTimeImmutable();
@@ -70,11 +70,9 @@ final class CreateTagController
     try {
       $this->tags->create($tag);
     } catch (TagNameAlreadyExistsException $e) {
-      $response->getBody()->write(((string) json_encode(['error' => 'Tag already exists.'])));
-      return $response->withHeader('Content-Type', 'application/json')->withStatus(409);
+      return Responder::json($response, ['error' => 'Tag already exists.'], 409);
     }
 
-    $response->getBody()->write((string) json_encode(TagSerializer::toArray($tag)));
-    return $response->withHeader('Content-Type', 'application/json')->withStatus(201);
+    return Responder::json($response, TagSerializer::toArray($tag), 201);
   }
 }

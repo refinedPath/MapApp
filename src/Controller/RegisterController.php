@@ -6,6 +6,7 @@ namespace App\Controller;
 
 use App\Entity\User;
 use App\Exception\EmailAlreadyExistsException;
+use App\Http\Responder;
 use App\Repository\UserRepositoryInterface;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
@@ -41,14 +42,12 @@ final class RegisterController
     }
 
     if ($errors !== []) {
-      $response->getBody()->write((string) json_encode(['errors' => $errors]));
-      return $response->withHeader('Content-Type', 'application/json')->withStatus(422);
+      return Responder::json($response, ['errors' => $errors], 422);
     }
 
     // duplicate check
     if ($this->users->findByEmail($email) !== null) {
-      $response->getBody()->write(((string) json_encode(['error' => 'Email already registered.'])));
-      return $response->withHeader('Content-Type', 'application/json')->withStatus(409);
+      return Responder::json($response, ['error' => 'Email already registered.'], 409);
     }
 
     // create
@@ -63,14 +62,12 @@ final class RegisterController
     try {
       $this->users->create($user);
     } catch (EmailAlreadyExistsException $e) {
-      $response->getBody()->write(((string) json_encode(['error' => 'Email already registered.'])));
-      return $response->withHeader('Content-Type', 'application/json')->withStatus(409);
+      return Responder::json($response, ['error' => 'Email already registered.'], 409);
     }
 
-    $response->getBody()->write((string) json_encode([
+    return Responder::json($response, [
       'id' => $user->id->toRfc4122(),
       'email' => $user->email,
-    ]));
-    return $response->withHeader('Content-Type', 'application/json')->withStatus(201);
+    ], 201);
   }
 }

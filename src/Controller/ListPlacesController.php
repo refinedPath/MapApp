@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Controller;
 
 use App\Http\PlaceViewSerializer;
+use App\Http\Responder;
 use App\ReadModel\PlaceView;
 use App\Repository\PlaceRepositoryInterface;
 use Psr\Http\Message\ResponseInterface as Response;
@@ -26,9 +27,9 @@ final class ListPlacesController
     }
     $places = $this->places->findAllForUserWithPrimaryTag($userId);
 
-    $response->getBody()->write((string) json_encode(
+    return Responder::json(
+      $response,
       array_map(fn (PlaceView $p): array => PlaceViewSerializer::toArray($p), $places)
-    ));
-    return $response->withHeader('Content-Type', 'application/json');
+    );
   }
 }

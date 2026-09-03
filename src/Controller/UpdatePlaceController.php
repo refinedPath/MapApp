@@ -6,6 +6,7 @@ namespace App\Controller;
 
 use App\Entity\Place;
 use App\Http\PlaceSerializer;
+use App\Http\Responder;
 use App\Middleware\UuidParamMiddleware;
 use App\Repository\PlaceRepositoryInterface;
 use Psr\Http\Message\ResponseInterface as Response;
@@ -45,14 +46,12 @@ final class UpdatePlaceController
     }
 
     if ($errors !== []) {
-      $response->getBody()->write((string) json_encode(['errors' => $errors]));
-      return $response->withHeader('Content-Type', 'application/json')->withStatus(422);
+      return Responder::json($response, ['errors' => $errors], 422);
     }
 
     $existing = $this->places->findByIdForUser($placeId, $userId);
     if ($existing === null) {
-      $response->getBody()->write((string) json_encode(['error' => 'Not found.']));
-      return $response->withHeader('Content-Type', 'application/json')->withStatus(404);
+      return Responder::json($response, ['error' => 'Not found.'], 404);
     }
 
     $now = new \DateTimeImmutable();
@@ -75,7 +74,6 @@ final class UpdatePlaceController
       updatedAt: $now,
     );
 
-    $response->getBody()->write((string) json_encode(PlaceSerializer::toArray($updated)));
-    return $response->withHeader('Content-Type', 'application/json');
+    return Responder::json($response, PlaceSerializer::toArray($updated));
   }
 }

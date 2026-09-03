@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Controller;
 
+use App\Http\Responder;
 use App\Middleware\UuidParamMiddleware;
 use App\Repository\PlaceRepositoryInterface;
 use App\Repository\PlaceTagRepositoryInterface;
@@ -37,12 +38,11 @@ final class UnassignTagController
 
     $place = $this->places->findByIdForUser($placeId, $userId);
     if ($place === null) {
-      $response->getBody()->write((string) json_encode(['error' => 'Not found.']));
-      return $response->withHeader('Content-Type', 'application/json')->withStatus(404);
+      return Responder::json($response, ['error' => 'Not found.'], 404);
     }
 
     $this->placeTags->unassign($placeId, $tagId);
     $this->places->clearPrimaryTagIfMatches($placeId, $tagId);
-    return $response->withStatus(204)->withoutHeader('Content-Type');
+    return Responder::noContent($response);
   }
 }

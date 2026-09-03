@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Middleware;
 
 use App\Exception\InvalidTokenException;
+use App\Http\Responder;
 use App\Service\TokenService;
 use Override;
 use Psr\Http\Message\ResponseFactoryInterface;
@@ -45,9 +46,6 @@ final class AuthMiddleware implements MiddlewareInterface
 
   private function unauthorized(): Response
   {
-    $response = $this->responseFactory->createResponse(401);
-    $response->getBody()->write((string) json_encode(['error' => 'Unauthorized.']));
-
-    return $response->withHeader('Content-Type', 'application/json');
+    return Responder::json($this->responseFactory->createResponse(), ['error' => 'Unauthorized.'], 401);
   }
 }

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Controller;
 
+use App\Http\Responder;
 use App\Middleware\UuidParamMiddleware;
 use App\Repository\PlaceRepositoryInterface;
 use App\Repository\PlaceTagRepositoryInterface;
@@ -39,23 +40,20 @@ final class AssignPrimaryTagController
 
     $place = $this->places->findByIdForUser($placeId, $userId);
     if ($place === null) {
-      $response->getBody()->write((string) json_encode(['error' => 'Not found.']));
-      return $response->withHeader('Content-Type', 'application/json')->withStatus(404);
+      return Responder::json($response, ['error' => 'Not found.'], 404);
     }
 
     $tag = $this->tags->findByIdForUser($tagId, $userId);
     if ($tag === null) {
-      $response->getBody()->write((string) json_encode(['error' => 'Not found.']));
-      return $response->withHeader('Content-Type', 'application/json')->withStatus(404);
+      return Responder::json($response, ['error' => 'Not found.'], 404);
     }
 
     $assignedTag = $this->placeTags->isAssigned($placeId, $tagId);
     if (!$assignedTag) {
-      $response->getBody()->write((string) json_encode(['error' => 'Tag is not assigned to this place.']));
-      return $response->withHeader('Content-Type', 'application/json')->withStatus(409);
+      return Responder::json($response, ['error' => 'Tag is not assigned to this place.'], 409);
     }
 
     $this->places->setPrimaryTag($placeId, $tagId);
-    return $response->withStatus(204)->withoutHeader('Content-Type');
+    return Responder::noContent($response);
   }
 }

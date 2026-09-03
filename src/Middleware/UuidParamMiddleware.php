@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Middleware;
 
+use App\Http\Responder;
 use Override;
 use Psr\Http\Message\ResponseFactoryInterface;
 use Psr\Http\Message\ResponseInterface as Response;
@@ -57,9 +58,6 @@ final class UuidParamMiddleware implements MiddlewareInterface
 
   private function notFound(): Response
   {
-    $response = $this->responseFactory->createResponse(404);
-    $response->getBody()->write((string) json_encode(['error' => 'Not found.']));
-
-    return $response->withHeader('Content-Type', 'application/json');
+    return Responder::json($this->responseFactory->createResponse(), ['error' => 'Not found.'], 404);
   }
 }

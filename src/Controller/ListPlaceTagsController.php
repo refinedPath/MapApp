@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Controller;
 
 use App\Entity\Tag;
+use App\Http\Responder;
 use App\Http\TagSerializer;
 use App\Middleware\UuidParamMiddleware;
 use App\Repository\PlaceRepositoryInterface;
@@ -35,15 +36,14 @@ final class ListPlaceTagsController
 
     $place = $this->places->findByIdForUser($placeId, $userId);
     if ($place === null) {
-      $response->getBody()->write((string) json_encode(['error' => 'Not found.']));
-      return $response->withHeader('Content-Type', 'application/json')->withStatus(404);
+      return Responder::json($response, ['error' => 'Not found.'], 404);
     }
 
     $tags = $this->placeTags->findTagsForPlace($placeId);
 
-    $response->getBody()->write((string) json_encode(
+    return Responder::json(
+      $response,
       array_map(fn (Tag $t): array => TagSerializer::toArray($t), $tags)
-    ));
-    return $response->withHeader('Content-Type', 'application/json');
+    );
   }
 }

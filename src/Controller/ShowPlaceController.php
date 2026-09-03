@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Controller;
 
 use App\Http\PlaceViewSerializer;
+use App\Http\Responder;
 use App\Middleware\UuidParamMiddleware;
 use App\Repository\PlaceRepositoryInterface;
 use Psr\Http\Message\ResponseInterface as Response;
@@ -32,11 +33,9 @@ final class ShowPlaceController
 
     $place = $this->places->findByIdForUserWithPrimaryTag($placeId, $userId);
     if ($place === null) {
-      $response->getBody()->write((string) json_encode(['error' => 'Not found.']));
-      return $response->withHeader('Content-Type', 'application/json')->withStatus(404);
+      return Responder::json($response, ['error' => 'Not found.'], 404);
     }
 
-    $response->getBody()->write((string) json_encode(PlaceViewSerializer::toArray($place)));
-    return $response->withHeader('Content-Type', 'application/json');
+    return Responder::json($response, PlaceViewSerializer::toArray($place));
   }
 }

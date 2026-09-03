@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Controller;
 
+use App\Http\Responder;
 use App\Repository\UserRepositoryInterface;
 use App\Service\TokenService;
 use Psr\Http\Message\ResponseInterface as Response;
@@ -38,22 +39,19 @@ final class LoginController
     }
 
     if ($errors !== []) {
-      $response->getBody()->write((string) json_encode(['errors' => $errors]));
-      return $response->withHeader('Content-Type', 'application/json')->withStatus(422);
+      return Responder::json($response, ['errors' => $errors], 422);
     }
 
     // authenticate
     $user = $this->users->findByEmail($email);
 
     if ($user === null || !password_verify($password, $user->passwordHash)) {
-      $response->getBody()->write((string) json_encode(['error' => 'Invalid credentials.']));
-      return $response->withHeader('Content-Type', 'application/json')->withStatus(401);
+      return Responder::json($response, ['error' => 'Invalid credentials.'], 401);
     }
 
     // success - issue a token
     $token = $this->tokens->issueForUser($user->id);
 
-    $response->getBody()->write((string) json_encode(['token' => $token]));
-    return $response->withHeader('Content-Type', 'application/json')->withStatus(200);
+    return Responder::json($response, ['token' => $token], 200);
   }
 }

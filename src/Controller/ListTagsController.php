@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Controller;
 
 use App\Entity\Tag;
+use App\Http\Responder;
 use App\Http\TagSerializer;
 use App\Repository\TagRepositoryInterface;
 use Psr\Http\Message\ResponseInterface as Response;
@@ -26,9 +27,9 @@ final class ListTagsController
     }
     $tags = $this->tags->findAllForUser($userId);
 
-    $response->getBody()->write((string) json_encode(
+    return Responder::json(
+      $response,
       array_map(fn (Tag $t): array => TagSerializer::toArray($t), $tags)
-    ));
-    return $response->withHeader('Content-Type', 'application/json');
+    );
   }
 }

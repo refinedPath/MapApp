@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Controller;
 
+use App\Http\Responder;
 use App\Middleware\UuidParamMiddleware;
 use App\Repository\PlaceRepositoryInterface;
 use Psr\Http\Message\ResponseInterface as Response;
@@ -31,10 +32,9 @@ final class DeletePlaceController
 
     $deleted = $this->places->delete($placeId, $userId);
     if ($deleted === 0) {
-      $response->getBody()->write((string) json_encode(['error' => 'Not found.']));
-      return $response->withHeader('Content-Type', 'application/json')->withStatus(404);
+      return Responder::json($response, ['error' => 'Not found.'], 404);
     }
 
-    return $response->withStatus(204)->withoutHeader('Content-Type');
+    return Responder::noContent($response);
   }
 }

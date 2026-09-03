@@ -8,6 +8,7 @@ use App\Entity\Coordinates;
 use App\Entity\Place;
 use App\Exception\InvalidCoordinatesException;
 use App\Http\PlaceSerializer;
+use App\Http\Responder;
 use App\Repository\PlaceRepositoryInterface;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
@@ -50,8 +51,7 @@ final class CreatePlaceController
     }
 
     if ($errors !== []) {
-      $response->getBody()->write((string) json_encode(['errors' => $errors]));
-      return $response->withHeader('Content-Type', 'application/json')->withStatus(422);
+      return Responder::json($response, ['errors' => $errors], 422);
     }
 
     if (!is_numeric($latRaw) || !is_numeric($lngRaw)) {
@@ -64,10 +64,9 @@ final class CreatePlaceController
         longitude: (float) $lngRaw,
       );
     } catch (InvalidCoordinatesException $e) {
-      $response->getBody()->write((string) json_encode([
+      return Responder::json($response, [
         'errors' => ['location' => $e->getMessage()],
-      ]));
-      return $response->withHeader('Content-Type', 'application/json')->withStatus(422);
+      ], 422);
     }
 
     $now = new \DateTimeImmutable();
@@ -82,7 +81,6 @@ final class CreatePlaceController
     );
     $this->places->create($place);
 
-    $response->getBody()->write((string) json_encode(PlaceSerializer::toArray($place)));
-    return $response->withHeader('Content-Type', 'application/json')->withStatus(201);
+    return Responder::json($response, PlaceSerializer::toArray($place), 201);
   }
 }
