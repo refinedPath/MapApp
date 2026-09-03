@@ -15,6 +15,7 @@
   let manageTagsBtn, manageTagsDialog, tagForm, tagFormName, tagFormColor, tagFormEmoji, tagFormError, tagFormCancelBtn, tagFormSubmit, tagManagerList, closeManageTagsBtn;
   let editPlaceTags = [];
   let editPlaceAllTags = [];
+  let manageTags = [];
   let openPopup = null;
 
   /**
@@ -211,7 +212,7 @@
     });
 
     manageTagsBtn.addEventListener('click', () => {
-      manageTagsDialog.showModal();
+      openManageTags();
     });
 
     closeManageTagsBtn.addEventListener('click', () => {
@@ -284,6 +285,10 @@
 
   async function fetchTags() {
     return authedFetch(`${API_BASE}/tags`);
+  }
+
+  async function fetchTagsWithCounts() {
+    return authedFetch(`${API_BASE}/tags/counts`);
   }
 
   function firstGrapheme(str) {
@@ -447,6 +452,58 @@
       if (assignedIds.has(tag.id)) continue;
       editPlaceAllTagsList.appendChild(renderUnassignedTagChip(tag));
     }
+  }
+
+  async function openManageTags() {
+    tagFormError.textContent = '';
+    tagManagerList.textContent = 'Loading tags…';
+    manageTagsDialog.showModal();
+
+    try {
+      manageTags = await fetchTagsWithCounts();
+      if (!manageTagsDialog.open) return;
+      renderTagManager();
+    } catch (err) {
+      if (!manageTagsDialog.open) return;
+      tagManagerList.textContent = 'Could not load tags.';
+      console.error(err);
+    }
+  }
+
+  function renderTagManager() {
+    tagManagerList.textContent = '';
+
+    if (manageTags.length === 0) {
+      tagManagerList.appendChild(el('p', { classes: ['tag-manager__empty'], text: 'No tags yet.' }));
+      return;
+    }
+
+    for (const tag of manageTags) {
+      tagManagerList.appendChild(renderTagManagerRow(tag));
+    }
+  }
+
+  function renderTagManagerRow(tag) {
+    const swatch = el('span', { classes: ['tag-manager__swatch'] });
+    swatch.style.backgroundColor = tag.color;
+    const emoji = firstGrapheme(tag.emoji);
+    if (emoji !== null) swatch.textContent = emoji;
+
+    const name = el('span', { classes: ['tag-manager__name'], text: tag.name, title: tag.name });
+
+    const count = el('span', {
+      classes: ['tag-manager__count'],
+      text: `${tag.assignment_count}`,
+      title: `Assigned to ${tag.assignment_count} place${tag.assignment_count === 1 ? '' : 's'}`,
+    });
+
+    const row = el('div', {
+      classes: ['tag-manager__row'],
+      children: [swatch, name, count],
+    });
+    if (tag.assignment_count === 0) row.classList.add('tag-manager__row--unused');
+
+    return row;
   }
 
   function buildPlacePopup(place) {

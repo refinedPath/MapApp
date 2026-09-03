@@ -229,3 +229,85 @@ body {
   padding: 3px 10px;
   font-size: 12px;
 }
+
+/* Manage tags modal */
+.tag-form__fields {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.tag-form__fields input {
+  margin: 0;
+}
+
+#tagFormName {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.tag-form__emoji {
+  flex: none;
+  width: 5rem;
+}
+
+#tagFormColor {
+  flex: none;
+  width: 3rem;
+  height: 2.5rem;
+  padding: 2px;
+}
+
+#tagManagerList {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 12px;
+  max-height: 40vh;
+  overflow-y: auto;
+}
+
+.tag-manager__empty {
+  opacity: 0.7;
+  margin: 12px 0 0;
+}
+
+.tag-manager__row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 8px;
+  border-radius: 6px;
+}
+
+.tag-manager__row--unused {
+  opacity: 0.55;
+}
+
+.tag-manager__swatch {
+  flex: none;
+  width: 22px;
+  height: 22px;
+  border-radius: 5px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  line-height: 1;
+}
+
+.tag-manager__name {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tag-manager__count {
+  flex: none;
+  font-size: 12px;
+  opacity: 0.8;
+  min-width: 1.5em;
+  text-align: right;
+}
