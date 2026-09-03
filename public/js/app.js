@@ -12,6 +12,7 @@
   let mapContainer, mapCustomControls, addPlaceBtn;
   let createPlaceDialog, createPlaceForm, placeName, placeDescription, createPlaceError, cancelCreatePlaceBtn;
   let editPlaceDialog, editPlaceForm, editPlaceName, editPlaceDescription, editPlaceTagsList, editPlaceAllTagsList, editPlaceError, cancelEditPlaceBtn, deleteEditPlaceBtn;
+  let manageTagsBtn, manageTagsDialog, tagForm, tagFormName, tagFormColor, tagFormEmoji, tagFormError, tagFormCancelBtn, tagFormSubmit, tagManagerList, closeManageTagsBtn;
   let editPlaceTags = [];
   let editPlaceAllTags = [];
   let openPopup = null;
@@ -45,15 +46,18 @@
     loginEmail = document.getElementById('loginEmail');
     loginPassword = document.getElementById('loginPassword');
     loginError = document.getElementById('loginError');
+
     mapContainer = document.getElementById('mapContainer');
     mapCustomControls = document.getElementById('mapCustomControls');
     addPlaceBtn = document.getElementById('addPlaceBtn');
+
     createPlaceDialog = document.getElementById('createPlaceDialog');
     createPlaceForm = document.getElementById('createPlaceForm');
     placeName = document.getElementById('placeName');
     placeDescription = document.getElementById('placeDescription');
     createPlaceError = document.getElementById('createPlaceError');
     cancelCreatePlaceBtn = document.getElementById('cancelCreatePlaceBtn');
+
     editPlaceDialog = document.getElementById('editPlaceDialog');
     editPlaceForm = document.getElementById('editPlaceForm');
     editPlaceName = document.getElementById('editPlaceName');
@@ -63,6 +67,18 @@
     editPlaceError = document.getElementById('editPlaceError');
     cancelEditPlaceBtn = document.getElementById('cancelEditPlaceBtn');
     deleteEditPlaceBtn = document.getElementById('deleteEditPlaceBtn');
+
+    manageTagsBtn = document.getElementById('manageTagsBtn');
+    manageTagsDialog = document.getElementById('manageTagsDialog');
+    tagForm = document.getElementById('tagForm');
+    tagFormName = document.getElementById('tagFormName');
+    tagFormColor = document.getElementById('tagFormColor');
+    tagFormEmoji = document.getElementById('tagFormEmoji');
+    tagFormError = document.getElementById('tagFormError');
+    tagFormCancelBtn = document.getElementById('tagFormCancelBtn');
+    tagFormSubmit = document.getElementById('tagFormSubmit');
+    tagManagerList = document.getElementById('tagManagerList');
+    closeManageTagsBtn = document.getElementById('closeManageTagsBtn');
 
     loginForm.addEventListener('submit', async (event) => {
       event.preventDefault();
@@ -192,6 +208,19 @@
         editPlaceError.textContent = err.message;
         console.error(err);
       }
+    });
+
+    manageTagsBtn.addEventListener('click', () => {
+      manageTagsDialog.showModal();
+    });
+
+    closeManageTagsBtn.addEventListener('click', () => {
+      manageTagsDialog.close();
+    });
+
+    tagForm.addEventListener('submit', (event) => {
+      event.preventDefault();
+      // create / edit wiring lands in the next step
     });
   }
 

@@ -13,10 +13,13 @@
 </head>
 
 <body>
+
   <div id="mapContainer" hidden></div>
   <div id="mapCustomControls" hidden>
     <button id="addPlaceBtn">Add place</button>
+    <button id="manageTagsBtn">Manage tags</button>
   </div>
+
   <div id="authView">
     <article>
       <h2>Login</h2>
@@ -30,6 +33,7 @@
       </form>
     </article>
   </div>
+
   <dialog id="createPlaceDialog" aria-labelledby="createPlaceTitle">
     <article>
       <h3 id="createPlaceTitle">New place</h3>
@@ -48,6 +52,7 @@
       </form>
     </article>
   </dialog>
+
   <dialog id="editPlaceDialog" aria-labelledby="editPlaceTitle">
     <article>
       <h3 id="editPlaceTitle">Edit place</h3>
@@ -75,6 +80,32 @@
       </form>
     </article>
   </dialog>
+
+  <dialog id="manageTagsDialog" aria-labelledby="manageTagsTitle">
+    <article>
+      <h3 id="manageTagsTitle">Manage tags</h3>
+      <form id="tagForm">
+        <div class="tag-form__fields">
+          <input type="text" id="tagFormName" name="tagFormName" placeholder="Tag name" aria-label="Tag name" required>
+          <input type="color" id="tagFormColor" name="tagFormColor" aria-label="Tag color">
+          <input type="text" id="tagFormEmoji" name="tagFormEmoji" placeholder="Emoji" aria-label="Tag emoji"
+            class="tag-form__emoji">
+        </div>
+        <p id="tagFormError" role="alert"></p>
+        <div class="modal-actions modal-actions--end">
+          <div class="modal-actions__primary">
+            <input type="button" id="tagFormCancelBtn" class="outline secondary" value="Cancel" hidden>
+            <input type="submit" id="tagFormSubmit" value="Add tag">
+          </div>
+        </div>
+      </form>
+      <div id="tagManagerList"></div>
+      <div class="modal-actions modal-actions--end">
+        <input type="button" id="closeManageTagsBtn" class="outline secondary" value="Close">
+      </div>
+    </article>
+  </dialog>
+
 </body>
 
 </html>

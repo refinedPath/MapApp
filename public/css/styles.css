@@ -31,6 +31,14 @@ body {
   left: 50%;
   transform: translateX(-50%);
   z-index: 999;
+  display: flex;
+  gap: 8px;
+}
+
+#mapCustomControls button {
+  width: auto;
+  margin: 0;
+  white-space: nowrap;
 }
 
 /* Custom place marker */
