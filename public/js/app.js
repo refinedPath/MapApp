@@ -221,16 +221,31 @@
       manageTagsDialog.close();
     });
 
+    tagFormCancelBtn.addEventListener('click', () => {
+      resetTagForm();
+    });
+
     tagForm.addEventListener('submit', async (event) => {
       event.preventDefault();
       tagFormError.textContent = '';
 
+      const editingId = tagForm.dataset.editingId;
+      const payload = {
+        name: tagFormName.value,
+        color: tagFormColor.value,
+        emoji: tagFormEmoji.value,
+      };
+
       try {
-        await authedPostJSON(`${API_BASE}/tags`, {
-          name: tagFormName.value,
-          color: tagFormColor.value,
-          emoji: tagFormEmoji.value,
-        });
+        if (editingId) {
+          await authedFetch(`${API_BASE}/tags/${editingId}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload),
+          });
+        } else {
+          await authedPostJSON(`${API_BASE}/tags`, payload);
+        }
         manageTags = await fetchTagsWithCounts();
         renderTagManager();
         resetTagForm();
@@ -476,6 +491,7 @@
 
   function resetTagForm() {
     tagForm.reset();
+    delete tagForm.dataset.editingId;
     tagFormColor.value = appConfig.tag.default_color;
     tagFormError.textContent = '';
     tagFormSubmit.value = 'Add tag';
@@ -525,13 +541,46 @@
       title: `Assigned to ${tag.assignment_count} place${tag.assignment_count === 1 ? '' : 's'}`,
     });
 
+    const editBtn = tagControlButton('✎', 'Edit tag', () => startEditTag(tag));
+    const deleteBtn = tagControlButton('✕', 'Delete tag', () => deleteTag(tag));
+    deleteBtn.classList.add('tag-manager__delete');
+
     const row = el('div', {
       classes: ['tag-manager__row'],
-      children: [swatch, name, count],
+      children: [swatch, name, count, editBtn, deleteBtn],
     });
     if (tag.assignment_count === 0) row.classList.add('tag-manager__row--unused');
 
     return row;
+  }
+
+  function startEditTag(tag) {
+    tagForm.dataset.editingId = tag.id;
+    tagFormName.value = tag.name;
+    tagFormColor.value = tag.color;
+    tagFormEmoji.value = tag.emoji ?? '';
+    tagFormError.textContent = '';
+    tagFormSubmit.value = 'Save';
+    tagFormCancelBtn.hidden = false;
+    tagFormName.focus();
+  }
+
+  async function deleteTag(tag) {
+    const msg = tag.assignment_count > 0
+      ? `Delete "${tag.name}"? It is assigned to ${tag.assignment_count} place${tag.assignment_count === 1 ? '' : 's'}; those tag assignments will be removed. The place${tag.assignment_count === 1 ? '' : 's'} stay${tag.assignment_count === 1 ? 's' : ''} untouched. This cannot be undone.`
+      : `Delete "${tag.name}"? This cannot be undone.`;
+    if (!confirm(msg)) return;
+
+    tagFormError.textContent = '';
+    try {
+      await authedFetch(`${API_BASE}/tags/${tag.id}`, { method: 'DELETE' });
+      if (tagForm.dataset.editingId === tag.id) resetTagForm();
+      manageTags = await fetchTagsWithCounts();
+      renderTagManager();
+    } catch (err) {
+      tagFormError.textContent = err.message;
+      console.error(err);
+    }
   }
 
   function buildPlacePopup(place) {

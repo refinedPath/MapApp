@@ -231,6 +231,10 @@ body {
 }
 
 /* Manage tags modal */
+#manageTagsDialog article {
+  width: min(92vw, 36rem);
+}
+
 .tag-form__fields {
   display: flex;
   gap: 8px;
@@ -243,19 +247,20 @@ body {
 
 #tagFormName {
   flex: 1 1 auto;
+  width: auto;
   min-width: 0;
 }
 
-.tag-form__emoji {
-  flex: none;
-  width: 5rem;
-}
-
 #tagFormColor {
-  flex: none;
+  flex: 0 0 3rem;
   width: 3rem;
   height: 2.5rem;
   padding: 2px;
+}
+
+.tag-form__emoji {
+  flex: 0 0 5rem;
+  width: 5rem;
 }
 
 #tagManagerList {
@@ -310,4 +315,8 @@ body {
   opacity: 0.8;
   min-width: 1.5em;
   text-align: right;
+}
+
+.tag-manager__delete {
+  color: #c0392b;
 }
