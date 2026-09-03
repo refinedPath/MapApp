@@ -11,7 +11,7 @@
   let authView, loginForm, loginEmail, loginPassword, loginError;
   let mapContainer, mapCustomControls, addPlaceBtn;
   let createPlaceDialog, createPlaceForm, placeName, placeDescription, createPlaceError, cancelCreatePlaceBtn;
-  let editPlaceDialog, editPlaceForm, editPlaceName, editPlaceDescription, editPlaceTagsList, editPlaceAllTagsList, editPlaceError, cancelEditPlaceBtn;
+  let editPlaceDialog, editPlaceForm, editPlaceName, editPlaceDescription, editPlaceTagsList, editPlaceAllTagsList, editPlaceError, cancelEditPlaceBtn, deleteEditPlaceBtn;
   let editPlaceTags = [];
   let editPlaceAllTags = [];
   let openPopup = null;
@@ -62,6 +62,7 @@
     editPlaceAllTagsList = document.getElementById('editPlaceAllTagsList');
     editPlaceError = document.getElementById('editPlaceError');
     cancelEditPlaceBtn = document.getElementById('cancelEditPlaceBtn');
+    deleteEditPlaceBtn = document.getElementById('deleteEditPlaceBtn');
 
     loginForm.addEventListener('submit', async (event) => {
       event.preventDefault();
@@ -168,6 +169,29 @@
 
     cancelEditPlaceBtn.addEventListener('click', () => {
       editPlaceDialog.close();
+    });
+
+    deleteEditPlaceBtn.addEventListener('click', async () => {
+      const placeId = editPlaceDialog.dataset.placeId;
+      if (!confirm('Delete this place? This cannot be undone.')) return;
+
+      editPlaceError.textContent = '';
+      try {
+        await authedFetch(`${API_BASE}/places/${placeId}`, {
+          method: 'DELETE',
+        });
+
+        state.markers[placeId]?.remove();
+        delete state.markers[placeId];
+        if (openPopup && openPopup.placeId === placeId) {
+          openPopup = null;
+        }
+
+        editPlaceDialog.close();
+      } catch (err) {
+        editPlaceError.textContent = err.message;
+        console.error(err);
+      }
     });
   }
 
