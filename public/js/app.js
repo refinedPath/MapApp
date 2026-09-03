@@ -3,7 +3,7 @@
 (function () {
   const API_BASE = '/api';
 
-  const state = { map: null, token: null, addPlaceMode: false, pendingLngLat: null };
+  const state = { map: null, token: null, addPlaceMode: false, pendingLngLat: null, markers: {} };
 
   const graphemeSegmenter = new Intl.Segmenter(undefined, { granularity: "grapheme" });
 
@@ -14,6 +14,7 @@
   let editPlaceDialog, editPlaceForm, editPlaceName, editPlaceDescription, editPlaceTagsList, editPlaceAllTagsList, editPlaceError, cancelEditPlaceBtn;
   let editPlaceTags = [];
   let editPlaceAllTags = [];
+  let openPopup = null;
 
   /**
    * Create a DOM element with classes, text, attributes, dataset, and children.
@@ -157,6 +158,7 @@
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(payload),
         });
+        await refreshPlaceMarker(placeId);
         editPlaceDialog.close();
       } catch (err) {
         editPlaceError.textContent = err.message;
@@ -217,6 +219,10 @@
 
   async function fetchPlaces() {
     return authedFetch(`${API_BASE}/places`);
+  }
+
+  async function fetchPlace(placeId) {
+    return authedFetch(`${API_BASE}/places/${placeId}`);
   }
 
   async function fetchPlaceTags(placeId) {
@@ -321,6 +327,7 @@
             editPlaceDialog.dataset.primaryTagId = '';
           }
           renderTags(editPlaceDialog.dataset.primaryTagId || null);
+          await refreshPlaceMarker(placeId);
         } catch (err) {
           editPlaceError.textContent = err.message;
           console.error(err);
@@ -335,10 +342,16 @@
           method: 'DELETE',
         });
         editPlaceTags = editPlaceTags.filter((t) => t.id !== tag.id);
-        if (editPlaceDialog.dataset.primaryTagId === tag.id) {
+        const wasPrimary = editPlaceDialog.dataset.primaryTagId === tag.id;
+        if (wasPrimary) {
           editPlaceDialog.dataset.primaryTagId = '';
         }
         renderTags(editPlaceDialog.dataset.primaryTagId || null);
+        if (wasPrimary) {
+          await refreshPlaceMarker(placeId);
+        } else if (openPopup && openPopup.placeId === placeId) {
+          renderPopupTags(placeId, openPopup.tagsSlot, openPopup.popup);
+        }
       } catch (err) {
         editPlaceError.textContent = err.message;
         console.error(err);
@@ -357,6 +370,9 @@
         });
         editPlaceTags = [...editPlaceTags, tag];
         renderTags(editPlaceDialog.dataset.primaryTagId || null);
+        if (openPopup && openPopup.placeId === placeId) {
+          renderPopupTags(placeId, openPopup.tagsSlot, openPopup.popup);
+        }
       } catch (err) {
         editPlaceError.textContent = err.message;
         console.error(err);
@@ -412,6 +428,24 @@
     return { popup, tagsSlot };
   }
 
+  function renderPopupTags(placeId, tagsSlot, popup) {
+    tagsSlot.textContent = 'Loading tags…';
+    fetchPlaceTags(placeId)
+      .then((tags) => {
+        if (!popup.isOpen()) return;
+        tagsSlot.textContent = '';
+        for (const tag of tags) {
+          tagsSlot.appendChild(renderTagChip(tag));
+        }
+      })
+      .catch((err) => {
+        if (!popup.isOpen()) return;
+        tagsSlot.textContent = '';
+        tagsSlot.appendChild(el('div', { text: 'Could not load tags.' }));
+        console.error(err);
+      });
+  }
+
   function addPlaceMarker(place) {
     const SVG_NS = 'http://www.w3.org/2000/svg';
 
@@ -448,27 +482,32 @@
     const { popup, tagsSlot } = buildPlacePopup(place);
 
     popup.on('open', () => {
-      tagsSlot.textContent = 'Loading tags…';
-      fetchPlaceTags(place.id)
-        .then((tags) => {
-          if (!popup.isOpen()) return;
-          tagsSlot.textContent = '';
-          for (const tag of tags) {
-            tagsSlot.appendChild(renderTagChip(tag));
-          }
-        })
-        .catch((err) => {
-          if (!popup.isOpen()) return;
-          tagsSlot.textContent = '';
-          tagsSlot.appendChild(el('div', { text: 'Could not load tags.' }));
-          console.error(err);
-        });
+      openPopup = { placeId: place.id, tagsSlot, popup };
+      renderPopupTags(place.id, tagsSlot, popup);
+    });
+    popup.on('close', () => {
+      if (openPopup && openPopup.popup === popup) openPopup = null;
     });
 
-    return new maplibregl.Marker({ element: markerEl, anchor: 'bottom' })
+    const marker = new maplibregl.Marker({ element: markerEl, anchor: 'bottom' })
       .setLngLat([place.longitude, place.latitude])
       .setPopup(popup)
       .addTo(state.map);
+
+    state.markers[place.id] = marker;
+    return marker;
+  }
+
+  async function refreshPlaceMarker(placeId) {
+    const freshPlace = await fetchPlace(placeId);
+
+    const old = state.markers[placeId];
+    const wasOpen = old.getPopup().isOpen();
+    old.remove();
+
+    addPlaceMarker(freshPlace);
+
+    if (wasOpen) state.markers[placeId].togglePopup();
   }
 
   init();
