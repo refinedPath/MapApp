@@ -6,11 +6,21 @@ namespace App\Repository;
 
 use App\Entity\Tag;
 use App\Exception\TagNameAlreadyExistsException;
+use App\ReadModel\TagView;
 use Override;
 use PDO;
 use PDOException;
 use Symfony\Component\Uid\Uuid;
 
+/**
+ * @phpstan-type TagViewRow array{
+ *   id: string,
+ *   name: string,
+ *   color: string,
+ *   emoji: string|null,
+ *   assignment_count: string
+ * }
+ */
 final class TagRepository implements TagRepositoryInterface
 {
   public function __construct(
@@ -136,5 +146,38 @@ final class TagRepository implements TagRepositoryInterface
     ]);
 
     return $stmt->rowCount();
+  }
+
+  /** @return TagView[] */
+  #[Override]
+  public function findAllForUserWithCounts(Uuid $userId): array
+  {
+    $stmt = $this->pdo->prepare(
+      'SELECT t.id, t.name, t.color, t.emoji,
+              COUNT(pt.place_id) AS assignment_count
+      FROM tags t
+      LEFT JOIN place_tags pt ON pt.tag_id = t.id
+      WHERE t.user_id = :user_id
+      GROUP BY t.id
+      ORDER BY t.name ASC'
+    );
+    $stmt->execute(['user_id' => $userId->toRfc4122()]);
+
+    /** @var list<TagViewRow> $rows */
+    $rows = $stmt->fetchAll();
+
+    return array_map(fn (array $row): TagView => $this->hydrateTagView($row), $rows);
+  }
+
+  /** @param TagViewRow $row */
+  private function hydrateTagView(array $row): TagView
+  {
+    return new TagView(
+      id: Uuid::fromString($row['id']),
+      name: $row['name'],
+      color: $row['color'],
+      emoji: $row['emoji'],
+      assignmentCount: (int) $row['assignment_count'],
+    );
   }
 }

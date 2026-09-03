@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Repository;
 
 use App\Entity\Tag;
+use App\ReadModel\TagView;
 use Symfony\Component\Uid\Uuid;
 
 interface TagRepositoryInterface
@@ -26,4 +27,7 @@ interface TagRepositoryInterface
   ): int;
 
   public function delete(Uuid $id, Uuid $userId): int;
+
+  /** @return TagView[] */
+  public function findAllForUserWithCounts(Uuid $userId): array;
 }

@@ -13,6 +13,7 @@ use App\Controller\DeleteTagController;
 use App\Controller\ListPlacesController;
 use App\Controller\ListPlaceTagsController;
 use App\Controller\ListTagsController;
+use App\Controller\ListTagsWithCountsController;
 use App\Controller\LoginController;
 use App\Controller\RegisterController;
 use App\Controller\ShowPlaceController;
@@ -45,6 +46,8 @@ return function (App $app): void {
 
     $group->post('/tags', CreateTagController::class);
     $group->get('/tags', ListTagsController::class);
+
+    $group->get('/tags/counts', ListTagsWithCountsController::class);
 
     $group->group('/places/{placeId}', function (RouteCollectorProxy $g): void {
       $g->get('', ShowPlaceController::class);
