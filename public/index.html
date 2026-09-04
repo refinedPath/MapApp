@@ -18,6 +18,7 @@
   <div id="mapCustomControls" hidden>
     <button id="addPlaceBtn">Add place</button>
     <button id="manageTagsBtn">Manage tags</button>
+    <button id="filterBtn">Filter</button>
   </div>
 
   <div id="authView">
@@ -102,6 +103,34 @@
       <div id="tagManagerList"></div>
       <div class="modal-actions modal-actions--end">
         <input type="button" id="closeManageTagsBtn" class="outline secondary" value="Close">
+      </div>
+    </article>
+  </dialog>
+
+  <dialog id="filterDialog" aria-labelledby="filterTitle">
+    <article>
+      <h3 id="filterTitle">Filter places by tags</h3>
+
+      <fieldset>
+        <legend>Match</legend>
+        <label>
+          <input type="radio" name="filterMode" value="any" checked>
+          Any of these tags
+        </label>
+        <label>
+          <input type="radio" name="filterMode" value="all">
+          All of these tags
+        </label>
+      </fieldset>
+
+      <div id="filterTagsList"></div>
+
+      <div class="modal-actions">
+        <input type="button" id="filterClearBtn" class="outline secondary" value="Clear filter">
+        <div class="modal-actions__primary">
+          <input type="button" id="filterCancelBtn" class="outline secondary" value="Cancel">
+          <input type="button" id="filterApplyBtn" value="Apply">
+        </div>
       </div>
     </article>
   </dialog>

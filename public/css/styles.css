@@ -301,3 +301,52 @@ body {
 .tag-manager__delete {
   color: #c0392b;
 }
+
+/* Filter modal */
+#filterDialog article {
+  width: min(60vw, 36rem);
+}
+
+#filterDialog fieldset {
+  margin-bottom: 0.75rem;
+}
+
+#filterTagsList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 4px;
+  max-height: 40vh;
+  overflow-y: auto;
+}
+
+.filter-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 12px;
+  border-radius: 12px;
+  border: 2px solid transparent;
+  background: #525f7a;
+  color: #fff;
+  font-size: 12px;
+  line-height: 1.6;
+  cursor: pointer;
+  width: auto;
+  margin: 0;
+  opacity: 0.4;
+}
+
+.filter-tag[aria-pressed="true"] {
+  opacity: 1;
+  border-color: #fff;
+}
+
+.filter-tag:focus-visible {
+  outline: 2px solid lightblue;
+  outline-offset: 1px;
+}
+
+#filterBtn.filter-btn--active {
+  font-weight: 600;
+}

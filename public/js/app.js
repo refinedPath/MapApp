@@ -3,7 +3,7 @@
 (function () {
   const API_BASE = '/api';
 
-  const state = { map: null, token: null, addPlaceMode: false, pendingLngLat: null, markers: {} };
+  const state = { map: null, token: null, addPlaceMode: false, pendingLngLat: null, markers: {}, filter: { tagIds: [], mode: 'any' } };
 
   const graphemeSegmenter = new Intl.Segmenter(undefined, { granularity: "grapheme" });
 
@@ -19,6 +19,9 @@
   let manageTags = [];
   let manageTagsDirty = false;
   let openPopup = null;
+  let filterBtn, filterDialog, filterTagsList, filterClearBtn, filterCancelBtn, filterApplyBtn;
+  let filterTags = [];
+  let filterStagedIds = new Set();
 
   /**
    * Create a DOM element with classes, text, attributes, dataset, and children.
@@ -82,6 +85,13 @@
     tagFormSubmit = document.getElementById('tagFormSubmit');
     tagManagerList = document.getElementById('tagManagerList');
     closeManageTagsBtn = document.getElementById('closeManageTagsBtn');
+
+    filterBtn = document.getElementById('filterBtn');
+    filterDialog = document.getElementById('filterDialog');
+    filterTagsList = document.getElementById('filterTagsList');
+    filterClearBtn = document.getElementById('filterClearBtn');
+    filterCancelBtn = document.getElementById('filterCancelBtn');
+    filterApplyBtn = document.getElementById('filterApplyBtn');
 
     loginForm.addEventListener('submit', async (event) => {
       event.preventDefault();
@@ -206,6 +216,7 @@
         if (openPopup && openPopup.placeId === placeId) {
           openPopup = null;
         }
+        updateFilterIndicator();
 
         editPlaceDialog.close();
       } catch (err) {
@@ -266,6 +277,22 @@
         console.error(err);
       }
     });
+
+    filterBtn.addEventListener('click', () => {
+      openFilterDialog();
+    });
+
+    filterApplyBtn.addEventListener('click', () => {
+      applyFilter();
+    });
+
+    filterClearBtn.addEventListener('click', () => {
+      clearFilter();
+    });
+
+    filterCancelBtn.addEventListener('click', () => {
+      filterDialog.close();
+    });
   }
 
   function armAddPlaceMode() {
@@ -315,7 +342,12 @@
   }
 
   async function fetchPlaces() {
-    return authedFetch(`${API_BASE}/places`);
+    const { tagIds, mode } = state.filter;
+    if (tagIds.length === 0) {
+      return authedFetch(`${API_BASE}/places`);
+    }
+    const query = new URLSearchParams({ tags: tagIds.join(','), match: mode });
+    return authedFetch(`${API_BASE}/places?${query.toString()}`);
   }
 
   async function fetchPlace(placeId) {
@@ -452,11 +484,10 @@
           editPlaceDialog.dataset.primaryTagId = '';
         }
         renderTags(editPlaceDialog.dataset.primaryTagId || null);
-        if (wasPrimary) {
-          await refreshPlaceMarker(placeId);
-        } else if (openPopup && openPopup.placeId === placeId) {
+        if (openPopup && openPopup.placeId === placeId) {
           renderPopupTags(placeId, openPopup.tagsSlot, openPopup.popup);
         }
+        await refreshPlaceMarker(placeId);
       } catch (err) {
         editPlaceError.textContent = err.message;
         console.error(err);
@@ -478,6 +509,7 @@
         if (openPopup && openPopup.placeId === placeId) {
           renderPopupTags(placeId, openPopup.tagsSlot, openPopup.popup);
         }
+        await refreshPlaceMarker(placeId);
       } catch (err) {
         editPlaceError.textContent = err.message;
         console.error(err);
@@ -592,6 +624,110 @@
     }
   }
 
+  async function openFilterDialog() {
+    filterStagedIds = new Set(state.filter.tagIds);
+    setFilterModeRadio(state.filter.mode);
+
+    filterTagsList.textContent = 'Loading tags…';
+    filterDialog.showModal();
+
+    try {
+      filterTags = await fetchTags();
+      if (!filterDialog.open) return;
+      renderFilterTags();
+    } catch (err) {
+      if (!filterDialog.open) return;
+      filterTagsList.textContent = 'Could not load tags.';
+      console.error(err);
+    }
+  }
+
+  function setFilterModeRadio(mode) {
+    const input = filterDialog.querySelector(`input[name="filterMode"][value="${mode}"]`);
+    if (input) input.checked = true;
+  }
+
+  function renderFilterTags() {
+    filterTagsList.textContent = '';
+
+    if (filterTags.length === 0) {
+      filterTagsList.appendChild(el('p', { classes: ['tag-manager__empty'], text: 'No tags yet.' }));
+      return;
+    }
+
+    for (const tag of filterTags) {
+      filterTagsList.appendChild(renderFilterTagChip(tag));
+    }
+  }
+
+  function renderFilterTagChip(tag) {
+    const selected = filterStagedIds.has(tag.id);
+    const children = [el('span', { classes: ['place-popup__tag-name'], text: tag.name })];
+
+    const emoji = firstGrapheme(tag.emoji);
+    if (emoji !== null) {
+      children.unshift(el('span', { classes: ['place-popup__tag-emoji'], text: emoji }));
+    }
+
+    const chip = el('button', {
+      classes: ['filter-tag'],
+      title: tag.name,
+      attrs: { type: 'button', 'aria-pressed': selected ? 'true' : 'false' },
+      children,
+    });
+    chip.style.backgroundColor = tag.color;
+
+    chip.addEventListener('click', () => {
+      if (filterStagedIds.has(tag.id)) {
+        filterStagedIds.delete(tag.id);
+        chip.setAttribute('aria-pressed', 'false');
+      } else {
+        filterStagedIds.add(tag.id);
+        chip.setAttribute('aria-pressed', 'true');
+      }
+    });
+
+    return chip;
+  }
+
+  function readFilterMode() {
+    const checked = filterDialog.querySelector('input[name="filterMode"]:checked');
+    return checked instanceof HTMLInputElement ? checked.value : 'any';
+  }
+
+  async function applyFilter() {
+    state.filter = {
+      tagIds: [...filterStagedIds],
+      mode: readFilterMode(),
+    };
+    filterDialog.close();
+    try {
+      await resyncMarkers();
+      updateFilterIndicator();
+    } catch (err) {
+      console.error(err);
+    }
+  }
+
+  async function clearFilter() {
+    state.filter = { tagIds: [], mode: readFilterMode() };
+    updateFilterIndicator();
+    filterDialog.close();
+    try {
+      await resyncMarkers();
+    } catch (err) {
+      console.error(err);
+    }
+  }
+
+  function updateFilterIndicator() {
+    const active = state.filter.tagIds.length > 0;
+    filterBtn.textContent = active
+      ? `Filter (${Object.keys(state.markers).length})`
+      : 'Filter';
+    filterBtn.classList.toggle('filter-btn--active', active);
+  }
+
   function buildPlacePopup(place) {
     const rawDescription = place.description ?? null;
     const tagsSlot = el('div', { classes: ['place-popup__tags'] });
@@ -695,6 +831,12 @@
   }
 
   async function refreshPlaceMarker(placeId) {
+    if (state.filter.tagIds.length > 0) {
+      await resyncMarkers();
+      updateFilterIndicator();
+      return;
+    }
+
     const freshPlace = await fetchPlace(placeId);
 
     const old = state.markers[placeId];
