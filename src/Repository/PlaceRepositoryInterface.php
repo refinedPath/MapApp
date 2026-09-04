@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Repository;
 
 use App\Entity\Place;
+use App\Enum\TagMatchMode;
 use App\ReadModel\PlaceView;
 use Symfony\Component\Uid\Uuid;
 
@@ -19,6 +20,16 @@ interface PlaceRepositoryInterface
   public function findAllForUserWithPrimaryTag(Uuid $userId): array;
 
   public function findByIdForUserWithPrimaryTag(Uuid $id, Uuid $userId): ?PlaceView;
+
+  /**
+   * @param list<Uuid> $tagIds
+   * @return PlaceView[]
+   */
+  public function findAllForUserMatchingTags(
+    Uuid $userId,
+    array $tagIds,
+    TagMatchMode $mode,
+  ): array;
 
   public function create(Place $place): void;
 

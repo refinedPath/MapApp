@@ -6,6 +6,7 @@ namespace App\Repository;
 
 use App\Entity\Coordinates;
 use App\Entity\Place;
+use App\Enum\TagMatchMode;
 use App\ReadModel\PlaceView;
 use Override;
 use PDO;
@@ -129,6 +130,59 @@ final class PlaceRepository implements PlaceRepositoryInterface
     $row = $stmt->fetch();
 
     return $row === false ? null : $this->hydratePlaceView($row);
+  }
+
+  /**
+   * Places owned by the user that carry the given tags, in the given match mode.
+   *
+   * Precondition: $tagIds is non-empty. An empty filter is served by the
+   * full-list read (findAllForUserWithPrimaryTag), not this method.
+   *
+   * @param list<Uuid> $tagIds
+   * @return PlaceView[]
+   */
+  #[Override]
+  public function findAllForUserMatchingTags(Uuid $userId, array $tagIds, TagMatchMode $mode): array
+  {
+    $ids = array_values(array_unique(array_map(
+      static fn (Uuid $id): string => $id->toRfc4122(),
+      $tagIds,
+    )));
+
+    [$membershipFilter, $extraParams] = match ($mode) {
+      TagMatchMode::Any => ['', []],
+      TagMatchMode::All => [
+        ' GROUP BY pt.place_id HAVING COUNT(DISTINCT pt.tag_id) = :tag_count',
+        ['tag_count' => count($ids)],
+      ],
+    };
+
+    $stmt = $this->pdo->prepare(
+      'SELECT p.id, p.name, p.description,
+                ST_Y(p.location::geometry) AS latitude,
+                ST_X(p.location::geometry) AS longitude,
+                p.primary_tag_id,
+                t.color AS primary_color,
+                t.emoji AS primary_emoji,
+                p.created_at, p.updated_at
+      FROM places p
+      LEFT JOIN tags t ON t.id = p.primary_tag_id
+      WHERE p.user_id = :user_id
+        AND p.id IN (
+          SELECT pt.place_id FROM place_tags pt
+          WHERE pt.tag_id = ANY(:tag_ids::uuid[])' . $membershipFilter . '
+        )
+      ORDER BY p.created_at DESC'
+    );
+    $stmt->execute([
+      'user_id' => $userId->toRfc4122(),
+      'tag_ids' => '{' . implode(',', $ids) . '}',
+    ] + $extraParams);
+
+    /** @var list<PlaceViewRow> $rows */
+    $rows = $stmt->fetchAll();
+
+    return array_map(fn (array $row): PlaceView => $this->hydratePlaceView($row), $rows);
   }
 
   #[Override]
