@@ -12,6 +12,8 @@ use Psr\Http\Message\ServerRequestInterface as Request;
 
 final class LoginController
 {
+  private const DUMMY_HASH = '$2y$10$B8smntkzLe9LfTu7NBffGej.Pw.BWPzcebqo9t8kK32WfMwj2KD0G';
+
   public function __construct(
     private readonly UserRepositoryInterface $users,
     private readonly TokenService $tokens,
@@ -42,10 +44,13 @@ final class LoginController
       return Responder::json($response, ['errors' => $errors], 422);
     }
 
-    // authenticate
+    // authenticate — verify against a dummy hash when the user is unknown so the
+    // unknown-email and wrong-password paths do the same bcrypt work (no timing
+    // side channel that would let an attacker enumerate registered emails).
     $user = $this->users->findByEmail($email);
+    $hash = $user->passwordHash ?? self::DUMMY_HASH;
 
-    if ($user === null || !password_verify($password, $user->passwordHash)) {
+    if (!password_verify($password, $hash) || $user === null) {
       return Responder::json($response, ['error' => 'Invalid credentials.'], 401);
     }
 
