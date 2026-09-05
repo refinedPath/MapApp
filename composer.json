@@ -28,6 +28,7 @@
     "require-dev": {
         "robmorgan/phinx": "^0.16.12",
         "phpstan/phpstan": "^2.2",
-        "friendsofphp/php-cs-fixer": "^3.95"
+        "friendsofphp/php-cs-fixer": "^3.95",
+        "phpunit/phpunit": "^12"
     }
 }
