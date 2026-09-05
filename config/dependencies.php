@@ -36,6 +36,8 @@ return [
     return new TokenService(
       $c->get('settings')['jwt']['secret'],
       $c->get('settings')['jwt']['ttl'],
+      $c->get('settings')['jwt']['issuer'],
+      $c->get('settings')['jwt']['audience'],
     );
   },
 

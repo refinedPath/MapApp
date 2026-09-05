@@ -13,6 +13,8 @@ return [
   ],
   'jwt' => [
     'secret' => $_ENV['JWT_SECRET'],
-    'ttl' => 60 * 60 * 24,  // 24 hours
+    'ttl' => 60 * 60 * 8,  // 8 hours
+    'issuer' => 'mapapp',
+    'audience' => 'mapapp',
   ],
 ];
