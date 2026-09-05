@@ -10,7 +10,7 @@
   // DOM refs — assigned in init() after the DOM is ready.
   let appConfig = null;
   let authView, loginForm, loginEmail, loginPassword, loginError;
-  let mapContainer, mapCustomControls, addPlaceBtn;
+  let mapContainer, mapCustomControls, addPlaceBtn, logoutBtn;
   let createPlaceDialog, createPlaceForm, placeName, placeDescription, createPlaceError, cancelCreatePlaceBtn;
   let editPlaceDialog, editPlaceForm, editPlaceName, editPlaceDescription, editPlaceTagsList, editPlaceAllTagsList, editPlaceError, cancelEditPlaceBtn, deleteEditPlaceBtn;
   let manageTagsBtn, manageTagsDialog, tagForm, tagFormName, tagFormColor, tagFormEmoji, tagFormError, tagFormCancelBtn, tagFormSubmit, tagManagerList, closeManageTagsBtn;
@@ -93,6 +93,8 @@
     filterCancelBtn = document.getElementById('filterCancelBtn');
     filterApplyBtn = document.getElementById('filterApplyBtn');
 
+    logoutBtn = document.getElementById('logoutBtn');
+
     loginForm.addEventListener('submit', async (event) => {
       event.preventDefault();
       loginError.textContent = '';
@@ -118,12 +120,6 @@
             container: 'mapContainer',
           });
 
-          const places = await fetchPlaces();
-
-          for (const place of places) {
-            addPlaceMarker(place);
-          }
-
           state.map.on('click', (e) => {
             if (state.addPlaceMode === true) {
               state.pendingLngLat = e.lngLat;
@@ -131,6 +127,11 @@
               disarmAddPlaceMode();
             }
           });
+        }
+
+        const places = await fetchPlaces();
+        for (const place of places) {
+          addPlaceMarker(place);
         }
       } catch (err) {
         loginError.textContent = err.message;
@@ -293,6 +294,10 @@
     filterCancelBtn.addEventListener('click', () => {
       filterDialog.close();
     });
+
+    logoutBtn.addEventListener('click', () => {
+      logout();
+    });
   }
 
   function armAddPlaceMode() {
@@ -319,7 +324,11 @@
     const response = await fetch(url, options);
     if (response.status === 204) return null;
     const data = await response.json();
-    if (!response.ok) throw new Error(data.error ?? `HTTP ${response.status}`);
+    if (!response.ok) {
+      const err = new Error(data.error ?? `HTTP ${response.status}`);
+      err.status = response.status;
+      throw err;
+    }
     return data;
   }
 
@@ -327,7 +336,33 @@
     const headers = {};
     if (options.headers) Object.assign(headers, options.headers);
     headers['Authorization'] = 'Bearer ' + state.token;
-    return apiFetch(url, { ...options, headers });
+    try {
+      return await apiFetch(url, { ...options, headers });
+    } catch (err) {
+      if (err.status === 401) {
+        logout('Your session has expired. Please log in again.');
+      }
+      throw err;
+    }
+  }
+
+  function logout(message) {
+    state.token = null;
+
+    for (const id of Object.keys(state.markers)) {
+      state.markers[id].remove();
+    }
+    state.markers = {};
+    openPopup = null;
+    state.filter = { tagIds: [], mode: 'any' };
+    updateFilterIndicator();
+
+    mapContainer.hidden = true;
+    mapCustomControls.hidden = true;
+    authView.hidden = false;
+
+    loginForm.reset();
+    loginError.textContent = message ?? '';
   }
 
   async function login(payload) {
