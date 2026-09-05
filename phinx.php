@@ -6,7 +6,8 @@ use Dotenv\Dotenv;
 
 require __DIR__ . '/vendor/autoload.php';
 
-$dotenv = Dotenv::createImmutable(__DIR__);
+$envFile = getenv('APP_ENV') === 'test' ? '.env.test' : '.env';
+$dotenv = Dotenv::createImmutable(__DIR__, $envFile);
 $dotenv->load();
 $dotenv->required(['DB_HOST', 'DB_PORT', 'DB_NAME', 'DB_USER', 'DB_PASS']);
 
