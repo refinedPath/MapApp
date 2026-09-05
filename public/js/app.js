@@ -114,7 +114,7 @@
 
         if (state.map === null) {
           state.map = new maplibregl.Map({
-            style: 'https://tiles.openfreemap.org/styles/liberty',
+            style: 'https://tiles.openfreemap.org/styles/bright',
             center: [-74.0135, 40.7054],
             zoom: 12,
             container: 'mapContainer',
