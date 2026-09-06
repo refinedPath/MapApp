@@ -2,6 +2,9 @@
 
 declare(strict_types=1);
 
+use App\Mail\InMemoryMailer;
+use App\Mail\LogMailer;
+use App\Mail\MailerInterface;
 use App\Middleware\UuidParamMiddlewareFactory;
 use App\Repository\PlaceRepository;
 use App\Repository\PlaceRepositoryInterface;
@@ -39,6 +42,14 @@ return [
       $c->get('settings')['jwt']['issuer'],
       $c->get('settings')['jwt']['audience'],
     );
+  },
+
+  MailerInterface::class => function (ContainerInterface $c): MailerInterface {
+    return match ($c->get('settings')['mail']['transport']) {
+      'memory' => new InMemoryMailer(),
+      'log' => new LogMailer(),
+      default => throw new \RuntimeException('Unknown mail transport: ' . $c->get('settings')['mail']['transport']),
+    };
   },
 
   ResponseFactoryInterface::class => fn (): ResponseFactory => new ResponseFactory(),

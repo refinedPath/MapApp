@@ -17,4 +17,7 @@ return [
     'issuer' => 'mapapp',
     'audience' => 'mapapp',
   ],
+  'mail' => [
+    'transport' => $_ENV['MAIL_TRANSPORT'] ?? 'log',
+  ],
 ];
