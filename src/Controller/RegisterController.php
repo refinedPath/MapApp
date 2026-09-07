@@ -9,6 +9,7 @@ use App\Exception\EmailAlreadyExistsException;
 use App\Http\Responder;
 use App\Repository\UserRepositoryInterface;
 use App\Service\EmailVerificationService;
+use App\Validation\PasswordPolicy;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Symfony\Component\Uid\Uuid;
@@ -18,6 +19,7 @@ final class RegisterController
   public function __construct(
     private readonly UserRepositoryInterface $users,
     private readonly EmailVerificationService $verification,
+    private readonly PasswordPolicy $passwordPolicy,
   ) {
   }
 
@@ -38,8 +40,11 @@ final class RegisterController
     }
     if ($password === '') {
       $errors['password'] = 'Password is required.';
-    } elseif (mb_strlen($password) < 8) {
-      $errors['password'] = 'Password must be at least 8 characters.';
+    } else {
+      $policyErrors = $this->passwordPolicy->validate($password);
+      if ($policyErrors !== []) {
+        $errors['password'] = implode(' ', $policyErrors);
+      }
     }
     if ($errors !== []) {
       return Responder::json($response, ['errors' => $errors], 422);

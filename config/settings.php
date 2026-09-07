@@ -23,4 +23,11 @@ return [
   'app' => [
     'url' => $_ENV['APP_URL'] ?? 'http://localhost',
   ],
+  'password' => [
+    'min_length' => (int) ($_ENV['PASSWORD_MIN_LENGTH'] ?? 12),
+    'require_uppercase' => filter_var($_ENV['PASSWORD_REQUIRE_UPPERCASE'] ?? true, FILTER_VALIDATE_BOOLEAN),
+    'require_lowercase' => filter_var($_ENV['PASSWORD_REQUIRE_LOWERCASE'] ?? true, FILTER_VALIDATE_BOOLEAN),
+    'require_number' => filter_var($_ENV['PASSWORD_REQUIRE_NUMBER'] ?? true, FILTER_VALIDATE_BOOLEAN),
+    'require_symbol' => filter_var($_ENV['PASSWORD_REQUIRE_SYMBOL'] ?? true, FILTER_VALIDATE_BOOLEAN),
+  ],
 ];

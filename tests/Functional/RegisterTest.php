@@ -10,6 +10,8 @@ use App\Repository\UserRepositoryInterface;
 
 final class RegisterTest extends FunctionalTestCase
 {
+  private const STRONG_PASSWORD = 'Str0ng-Passw0rd!';
+
   private function mailer(): InMemoryMailer
   {
     $m = $this->app->getContainer()->get(MailerInterface::class);
@@ -30,7 +32,7 @@ final class RegisterTest extends FunctionalTestCase
   {
     $response = $this->request('POST', '/api/register', [
       'email' => 'new@mapapp.test',
-      'password' => 'password123',
+      'password' => self::STRONG_PASSWORD,
     ]);
 
     self::assertSame(202, $response->getStatusCode());
@@ -53,7 +55,7 @@ final class RegisterTest extends FunctionalTestCase
 
     $response = $this->request('POST', '/api/register', [
       'email' => 'taken@mapapp.test',
-      'password' => 'password123',
+      'password' => self::STRONG_PASSWORD,
     ]);
 
     // Identical to the new-email path — no enumeration.

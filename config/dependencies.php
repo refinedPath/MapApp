@@ -18,6 +18,7 @@ use App\Repository\UserRepository;
 use App\Repository\UserRepositoryInterface;
 use App\Service\EmailVerificationService;
 use App\Service\TokenService;
+use App\Validation\PasswordPolicy;
 use Psr\Container\ContainerInterface;
 use Psr\Http\Message\ResponseFactoryInterface;
 use Slim\Psr7\Factory\ResponseFactory;
@@ -36,6 +37,18 @@ return [
 
   UserRepositoryInterface::class => function (ContainerInterface $c): UserRepository {
     return new UserRepository($c->get(PDO::class));
+  },
+
+  PasswordPolicy::class => function (ContainerInterface $c): PasswordPolicy {
+    $p = $c->get('settings')['password'];
+
+    return new PasswordPolicy(
+      minLength: $p['min_length'],
+      requireUppercase: $p['require_uppercase'],
+      requireLowercase: $p['require_lowercase'],
+      requireNumber: $p['require_number'],
+      requireSymbol: $p['require_symbol'],
+    );
   },
 
   TokenService::class => function (ContainerInterface $c): TokenService {
