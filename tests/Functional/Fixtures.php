@@ -12,16 +12,18 @@ final class Fixtures
   public function __construct(private readonly PDO $pdo) {}
 
   /** @return array{id: Uuid, email: string, password: string} */
-  public function createUser(string $email = 'user@mapapp.test', string $password = 'password123'): array
+  public function createUser(string $email = 'user@mapapp.test', string $password = 'password123', bool $verified = true): array
   {
     $id = Uuid::v7();
     $stmt = $this->pdo->prepare(
-      'INSERT INTO users (id, email, password_hash) VALUES (:id, :email, :hash)'
+      'INSERT INTO users (id, email, password_hash, email_verified_at)
+       VALUES (:id, :email, :hash, :verified_at)'
     );
     $stmt->execute([
       'id' => $id->toRfc4122(),
       'email' => $email,
       'hash' => password_hash($password, PASSWORD_DEFAULT),
+      'verified_at' => $verified ? (new \DateTimeImmutable())->format('Y-m-d H:i:sP') : null,
     ]);
 
     return ['id' => $id, 'email' => $email, 'password' => $password];

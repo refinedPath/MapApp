@@ -48,7 +48,7 @@ final class EmailVerificationServiceTest extends FunctionalTestCase
 
   public function testSendVerificationStoresTokenAndEmailsALink(): void
   {
-    $u = $this->fixtures->createUser('verify@mapapp.test');
+    $u = $this->fixtures->createUser('verify@mapapp.test', verified: false);
     $user = $this->users()->findById($u['id']);
     self::assertNotNull($user);
 
@@ -67,7 +67,7 @@ final class EmailVerificationServiceTest extends FunctionalTestCase
 
   public function testVerifyWithTheEmailedTokenMarksUserVerifiedAndConsumesToken(): void
   {
-    $u = $this->fixtures->createUser();
+    $u = $this->fixtures->createUser(verified: false);
     $user = $this->users()->findById($u['id']);
     self::assertNotNull($user);
 
