@@ -16,10 +16,12 @@ use App\Controller\ListTagsController;
 use App\Controller\ListTagsWithCountsController;
 use App\Controller\LoginController;
 use App\Controller\RegisterController;
+use App\Controller\ResendVerificationController;
 use App\Controller\ShowPlaceController;
 use App\Controller\UnassignTagController;
 use App\Controller\UpdatePlaceController;
 use App\Controller\UpdateTagController;
+use App\Controller\VerifyEmailController;
 use App\Middleware\AuthMiddleware;
 use App\Middleware\UuidParamMiddlewareFactory;
 use Slim\App;
@@ -35,6 +37,8 @@ return function (App $app): void {
   $app->group('/api', function (RouteCollectorProxy $group): void {
     $group->post('/register', RegisterController::class);
     $group->post('/login', LoginController::class);
+    $group->post('/verify-email', VerifyEmailController::class);
+    $group->post('/resend-verification', ResendVerificationController::class);
   });
 
   // protected routes - require a valid token
