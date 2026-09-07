@@ -68,4 +68,49 @@ final class LoginTest extends FunctionalTestCase
     self::assertArrayHasKey('email', $errors);     // invalid format
     self::assertArrayHasKey('password', $errors);  // required
   }
+
+  public function testUnverifiedUserCannotLogInAndGets403(): void
+  {
+    $this->fixtures->createUser('unverified@mapapp.test', 'correct-password', verified: false);
+
+    $response = $this->request('POST', '/api/login', [
+      'email' => 'unverified@mapapp.test',
+      'password' => 'correct-password',
+    ]);
+
+    self::assertSame(403, $response->getStatusCode());
+    self::assertArrayNotHasKey('token', $this->jsonBody($response));  // no token for unverified
+  }
+
+  public function testLoginRehashesAnOutdatedPasswordHash(): void
+  {
+    // Arrange a verified user whose stored hash is deliberately weaker than the
+    // current default, so it needs rehash.
+    $email = 'oldhash@mapapp.test';
+    $password = 'correct-password';
+    $weakHash = password_hash($password, PASSWORD_BCRYPT, ['cost' => 4]);
+
+    $id = \Symfony\Component\Uid\Uuid::v7();
+    $this->pdo->prepare(
+      'INSERT INTO users (id, email, password_hash, email_verified_at)
+       VALUES (:id, :email, :hash, :verified)'
+    )->execute([
+      'id' => $id->toRfc4122(),
+      'email' => $email,
+      'hash' => $weakHash,
+      'verified' => (new \DateTimeImmutable())->format('Y-m-d H:i:sP'),
+    ]);
+
+    self::assertTrue(password_needs_rehash($weakHash, PASSWORD_DEFAULT));  // precondition
+
+    $response = $this->request('POST', '/api/login', ['email' => $email, 'password' => $password]);
+    self::assertSame(200, $response->getStatusCode());
+
+    // The stored hash was upgraded, still verifies the same password, no longer needs rehash.
+    $user = $this->app->getContainer()->get(\App\Repository\UserRepositoryInterface::class)->findByEmail($email);
+    self::assertNotNull($user);
+    self::assertNotSame($weakHash, $user->passwordHash);                       // changed
+    self::assertTrue(password_verify($password, $user->passwordHash));         // still correct
+    self::assertFalse(password_needs_rehash($user->passwordHash, PASSWORD_DEFAULT));  // upgraded
+  }
 }

@@ -44,7 +44,7 @@ final class LoginController
       return Responder::json($response, ['errors' => $errors], 422);
     }
 
-    // authenticate — verify against a dummy hash when the user is unknown so the
+    // Authenticate. Verify against a dummy hash when the user is unknown so the
     // unknown-email and wrong-password paths do the same bcrypt work (no timing
     // side channel that would let an attacker enumerate registered emails).
     $user = $this->users->findByEmail($email);
@@ -52,6 +52,16 @@ final class LoginController
 
     if (!password_verify($password, $hash) || $user === null) {
       return Responder::json($response, ['error' => 'Invalid credentials.'], 401);
+    }
+
+    // Credentials are correct, but an unverified account can't log in yet
+    if ($user->emailVerifiedAt === null) {
+      return Responder::json($response, ['error' => 'Please verify your email before logging in.'], 403);
+    }
+
+    // Upgrade the stored hash
+    if (password_needs_rehash($user->passwordHash, PASSWORD_DEFAULT)) {
+      $this->users->updatePasswordHash($user->id, password_hash($password, PASSWORD_DEFAULT));
     }
 
     // success - issue a token
