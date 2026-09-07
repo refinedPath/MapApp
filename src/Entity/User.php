@@ -14,6 +14,7 @@ final readonly class User
     public string $passwordHash,
     public \DateTimeImmutable $createdAt,
     public \DateTimeImmutable $updatedAt,
+    public ?\DateTimeImmutable $emailVerifiedAt = null,
   ) {
   }
 }

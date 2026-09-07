@@ -14,6 +14,8 @@ interface UserRepositoryInterface
 
   public function findById(Uuid $id): ?User;
 
+  public function markEmailVerified(Uuid $userId, \DateTimeImmutable $verifiedAt): void;
+
   /**
    * @throws EmailAlreadyExistsException
    */

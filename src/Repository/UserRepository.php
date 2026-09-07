@@ -10,6 +10,16 @@ use Override;
 use PDO;
 use Symfony\Component\Uid\Uuid;
 
+/**
+ * @phpstan-type UserRow array{
+ *   id: string,
+ *   email: string,
+ *   password_hash: string,
+ *   created_at: string,
+ *   updated_at: string,
+ *   email_verified_at: string|null
+ * }
+ */
 final class UserRepository implements UserRepositoryInterface
 {
   public function __construct(
@@ -21,12 +31,12 @@ final class UserRepository implements UserRepositoryInterface
   public function findByEmail(string $email): ?User
   {
     $stmt = $this->pdo->prepare(
-      'SELECT id, email, password_hash, created_at, updated_at
+      'SELECT id, email, password_hash, created_at, updated_at, email_verified_at
       FROM users WHERE email = :email'
     );
     $stmt->execute(['email' => $email]);
 
-    /** @var array<string, string>|false $row */
+    /** @var UserRow|false $row */
     $row = $stmt->fetch();
 
     return $row === false ? null : $this->hydrate($row);
@@ -36,12 +46,12 @@ final class UserRepository implements UserRepositoryInterface
   public function findById(Uuid $id): ?User
   {
     $stmt = $this->pdo->prepare(
-      'SELECT id, email, password_hash, created_at, updated_at
+      'SELECT id, email, password_hash, created_at, updated_at, email_verified_at
       FROM users WHERE id = :id'
     );
     $stmt->execute(['id' => $id->toRfc4122()]);
 
-    /** @var array<string, string>|false $row */
+    /** @var UserRow|false $row */
     $row = $stmt->fetch();
 
     return $row === false ? null : $this->hydrate($row);
@@ -73,8 +83,23 @@ final class UserRepository implements UserRepositoryInterface
     }
   }
 
+  #[Override]
+  public function markEmailVerified(Uuid $userId, \DateTimeImmutable $verifiedAt): void
+  {
+    $stmt = $this->pdo->prepare(
+      'UPDATE users
+        SET email_verified_at = :verified_at, updated_at = :updated_at
+      WHERE id = :id'
+    );
+    $stmt->execute([
+      'id' => $userId->toRfc4122(),
+      'verified_at' => $verifiedAt->format('Y-m-d H:i:sP'),
+      'updated_at' => $verifiedAt->format('Y-m-d H:i:sP'),
+    ]);
+  }
+
   /**
-   * @param array<string, string> $row
+   * @param UserRow $row
    */
   private function hydrate(array $row): User
   {
@@ -84,6 +109,7 @@ final class UserRepository implements UserRepositoryInterface
       passwordHash: $row['password_hash'],
       createdAt: new \DateTimeImmutable($row['created_at']),
       updatedAt: new \DateTimeImmutable($row['updated_at']),
+      emailVerifiedAt: $row['email_verified_at'] === null ? null : new \DateTimeImmutable($row['email_verified_at']),
     );
   }
 }

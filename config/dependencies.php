@@ -6,6 +6,8 @@ use App\Mail\InMemoryMailer;
 use App\Mail\LogMailer;
 use App\Mail\MailerInterface;
 use App\Middleware\UuidParamMiddlewareFactory;
+use App\Repository\EmailVerificationTokenRepository;
+use App\Repository\EmailVerificationTokenRepositoryInterface;
 use App\Repository\PlaceRepository;
 use App\Repository\PlaceRepositoryInterface;
 use App\Repository\PlaceTagRepository;
@@ -50,6 +52,10 @@ return [
       'log' => new LogMailer(),
       default => throw new \RuntimeException('Unknown mail transport: ' . $c->get('settings')['mail']['transport']),
     };
+  },
+
+  EmailVerificationTokenRepositoryInterface::class => function (ContainerInterface $c): EmailVerificationTokenRepository {
+    return new EmailVerificationTokenRepository($c->get(PDO::class));
   },
 
   ResponseFactoryInterface::class => fn (): ResponseFactory => new ResponseFactory(),
