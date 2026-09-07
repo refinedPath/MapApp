@@ -20,4 +20,7 @@ return [
   'mail' => [
     'transport' => $_ENV['MAIL_TRANSPORT'] ?? 'log',
   ],
+  'app' => [
+    'url' => $_ENV['APP_URL'] ?? 'http://localhost',
+  ],
 ];

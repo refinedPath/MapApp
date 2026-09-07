@@ -16,6 +16,7 @@ use App\Repository\TagRepository;
 use App\Repository\TagRepositoryInterface;
 use App\Repository\UserRepository;
 use App\Repository\UserRepositoryInterface;
+use App\Service\EmailVerificationService;
 use App\Service\TokenService;
 use Psr\Container\ContainerInterface;
 use Psr\Http\Message\ResponseFactoryInterface;
@@ -56,6 +57,15 @@ return [
 
   EmailVerificationTokenRepositoryInterface::class => function (ContainerInterface $c): EmailVerificationTokenRepository {
     return new EmailVerificationTokenRepository($c->get(PDO::class));
+  },
+
+  EmailVerificationService::class => function (ContainerInterface $c): EmailVerificationService {
+    return new EmailVerificationService(
+      $c->get(EmailVerificationTokenRepositoryInterface::class),
+      $c->get(UserRepositoryInterface::class),
+      $c->get(MailerInterface::class),
+      $c->get('settings')['app']['url'],
+    );
   },
 
   ResponseFactoryInterface::class => fn (): ResponseFactory => new ResponseFactory(),
