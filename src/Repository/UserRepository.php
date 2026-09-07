@@ -98,6 +98,19 @@ final class UserRepository implements UserRepositoryInterface
     ]);
   }
 
+  #[Override]
+  public function updatePasswordHash(Uuid $userId, string $passwordHash): void
+  {
+    $stmt = $this->pdo->prepare(
+      'UPDATE users SET password_hash = :password_hash, updated_at = :updated_at WHERE id = :id'
+    );
+    $stmt->execute([
+      'id' => $userId->toRfc4122(),
+      'password_hash' => $passwordHash,
+      'updated_at' => (new \DateTimeImmutable())->format('Y-m-d H:i:sP'),
+    ]);
+  }
+
   /**
    * @param UserRow $row
    */

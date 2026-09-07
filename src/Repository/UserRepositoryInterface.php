@@ -16,6 +16,8 @@ interface UserRepositoryInterface
 
   public function markEmailVerified(Uuid $userId, \DateTimeImmutable $verifiedAt): void;
 
+  public function updatePasswordHash(Uuid $userId, string $passwordHash): void;
+
   /**
    * @throws EmailAlreadyExistsException
    */
