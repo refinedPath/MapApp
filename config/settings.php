@@ -19,6 +19,7 @@ return [
   ],
   'mail' => [
     'transport' => $_ENV['MAIL_TRANSPORT'] ?? 'log',
+    'verification_ttl_hours' => (int) ($_ENV['VERIFICATION_TTL_HOURS'] ?? 1),
   ],
   'app' => [
     'url' => $_ENV['APP_URL'] ?? 'http://localhost',

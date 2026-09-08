@@ -78,6 +78,7 @@ return [
       $c->get(UserRepositoryInterface::class),
       $c->get(MailerInterface::class),
       $c->get('settings')['app']['url'],
+      $c->get('settings')['mail']['verification_ttl_hours'],
     );
   },
 

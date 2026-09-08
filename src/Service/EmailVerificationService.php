@@ -15,14 +15,14 @@ use Symfony\Component\Uid\Uuid;
 
 final class EmailVerificationService
 {
-  private const TOKEN_TTL_SECONDS = 60 * 60 * 24;  // 24 hours
-  private const RESEND_COOLDOWN_SECONDS = 60;       // min interval between outbound sends
+  private const RESEND_COOLDOWN_SECONDS = 60; // min interval between outbound sends
 
   public function __construct(
     private readonly EmailVerificationTokenRepositoryInterface $tokens,
     private readonly UserRepositoryInterface $users,
     private readonly MailerInterface $mailer,
     private readonly string $appUrl,
+    private readonly int $ttlHours,
   ) {
   }
 
@@ -45,15 +45,17 @@ final class EmailVerificationService
 
     $rawToken = bin2hex(random_bytes(32));          // 256-bit, 64 hex chars — goes in the link
     $tokenHash = hash('sha256', $rawToken);
-    $expiresAt = $now->add(new \DateInterval('PT' . self::TOKEN_TTL_SECONDS . 'S'));
+    $expiresAt = $now->add(new \DateInterval('PT' . $this->ttlHours . 'H'));
 
     $this->tokens->create($user->id, $tokenHash, $expiresAt);
 
     $link = rtrim($this->appUrl, '/') . '/?verify=' . $rawToken;
+
+    $expiry = $this->ttlHours === 1 ? '1 hour' : "{$this->ttlHours} hours";
     $this->mailer->send(new Email(
       to: $user->email,
       subject: 'Verify your email address',
-      body: "Welcome to MapApp!\n\nConfirm your email by opening this link:\n{$link}\n\nThe link expires in 24 hours.",
+      body: "Welcome to MapApp!\n\nConfirm your email by opening this link:\n{$link}\n\nThe link expires in {$expiry}.",
     ));
   }
 
