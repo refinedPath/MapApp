@@ -17,6 +17,36 @@ body {
   max-width: 24rem;
 }
 
+/* Password requirements checklist */
+.pw-reqs {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 0.75rem;
+  font-size: 0.85rem;
+}
+
+.pw-reqs li {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  opacity: 0.65;
+}
+
+.pw-reqs li::before {
+  content: "○";
+}
+
+.pw-reqs li.met {
+  opacity: 1;
+  color: #2e7d32;
+}
+
+.pw-reqs li.met::before {
+  content: "✓";
+}
+
+/* map */
+
 #mapContainer {
   position: absolute;
   inset: 0;

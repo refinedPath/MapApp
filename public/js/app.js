@@ -12,6 +12,7 @@
   let authView, loginForm, loginEmail, loginPassword, loginError;
   let loginSection, registerSection, showRegisterLink, showLoginLink;
   let registerForm, registerEmail, registerPassword, registerPasswordConfirm, registerError, registerSuccess;
+  let passwordRequirements, passwordPolicy = null;
   let verifySection, verifyMessage, resendForm, resendEmail, resendError, resendSuccess, verifyToLoginLink;
   let mapContainer, mapCustomControls, addPlaceBtn, logoutBtn;
   let createPlaceDialog, createPlaceForm, placeName, placeDescription, createPlaceError, cancelCreatePlaceBtn;
@@ -65,6 +66,7 @@
     registerEmail = document.getElementById('registerEmail');
     registerPassword = document.getElementById('registerPassword');
     registerPasswordConfirm = document.getElementById('registerPasswordConfirm');
+    passwordRequirements = document.getElementById('passwordRequirements');
     registerError = document.getElementById('registerError');
     registerSuccess = document.getElementById('registerSuccess');
 
@@ -161,6 +163,8 @@
         console.error(err);
       }
     });
+
+    registerPassword.addEventListener('input', renderPasswordRequirements);
 
     registerForm.addEventListener('submit', async (event) => {
       event.preventDefault();
@@ -388,6 +392,8 @@
       logout();
     });
 
+    loadPasswordPolicy();
+
     maybeHandleVerification();
   }
 
@@ -476,6 +482,41 @@
       body: JSON.stringify(payload),
     });
     return data.token;
+  }
+
+  async function loadPasswordPolicy() {
+    try {
+      const config = await apiFetch(`${API_BASE}/config`);
+      passwordPolicy = config.password ?? null;
+      renderPasswordRequirements();
+    } catch {
+      passwordPolicy = null;
+    }
+  }
+
+  function renderPasswordRequirements() {
+    if (passwordPolicy === null) {
+      passwordRequirements.hidden = true;
+
+      return;
+    }
+
+    const pw = registerPassword.value;
+    const rules = [
+      { label: `At least ${passwordPolicy.min_length} characters`, met: pw.length >= passwordPolicy.min_length, on: true },
+      { label: 'An uppercase letter', met: /\p{Lu}/u.test(pw), on: passwordPolicy.require_uppercase },
+      { label: 'A lowercase letter', met: /\p{Ll}/u.test(pw), on: passwordPolicy.require_lowercase },
+      { label: 'A number', met: /\p{N}/u.test(pw), on: passwordPolicy.require_number },
+      { label: 'A symbol', met: /[^\p{L}\p{N}]/u.test(pw), on: passwordPolicy.require_symbol },
+    ].filter((r) => r.on);
+
+    passwordRequirements.textContent = '';
+    for (const rule of rules) {
+      const li = el('li', { text: rule.label });
+      if (rule.met) li.classList.add('met');
+      passwordRequirements.appendChild(li);
+    }
+    passwordRequirements.hidden = false;
   }
 
   async function register(payload) {
