@@ -13,7 +13,7 @@ return [
   ],
   'jwt' => [
     'secret' => $_ENV['JWT_SECRET'],
-    'ttl' => 60 * 60 * 8,  // 8 hours
+    'ttl' => (int) ($_ENV['JWT_TTL_SECONDS'] ?? 60 * 15),  // default 15m
     'issuer' => 'mapapp',
     'audience' => 'mapapp',
   ],
