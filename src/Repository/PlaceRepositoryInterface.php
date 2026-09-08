@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Repository;
 
+use App\Entity\Coordinates;
 use App\Entity\Place;
 use App\Enum\TagMatchMode;
 use App\ReadModel\PlaceView;
@@ -46,6 +47,13 @@ interface PlaceRepositoryInterface
     Uuid $userId,
     string $name,
     ?string $description,
+    \DateTimeImmutable $updatedAt,
+  ): int;
+
+  public function updateLocation(
+    Uuid $id,
+    Uuid $userId,
+    Coordinates $location,
     \DateTimeImmutable $updatedAt,
   ): int;
 }

@@ -21,6 +21,7 @@ use App\Controller\ResendVerificationController;
 use App\Controller\ShowPlaceController;
 use App\Controller\UnassignTagController;
 use App\Controller\UpdatePlaceController;
+use App\Controller\UpdatePlaceLocationController;
 use App\Controller\UpdateTagController;
 use App\Controller\VerifyEmailController;
 use App\Middleware\AuthMiddleware;
@@ -81,6 +82,10 @@ return function (App $app): void {
 
     $group->group('/places/{placeId}/primary-tag', function (RouteCollectorProxy $g): void {
       $g->delete('', ClearPrimaryTagController::class);
+    })->add($container->get(UuidParamMiddlewareFactory::class)->forParams(['placeId']));
+
+    $group->group('/places/{placeId}/location', function (RouteCollectorProxy $g): void {
+      $g->put('', UpdatePlaceLocationController::class);
     })->add($container->get(UuidParamMiddlewareFactory::class)->forParams(['placeId']));
   })->add(AuthMiddleware::class);
 };

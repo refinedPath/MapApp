@@ -231,6 +231,30 @@ final class PlaceRepository implements PlaceRepositoryInterface
   }
 
   #[Override]
+  public function updateLocation(
+    Uuid $id,
+    Uuid $userId,
+    Coordinates $location,
+    \DateTimeImmutable $updatedAt,
+  ): int {
+    $stmt = $this->pdo->prepare(
+      'UPDATE places
+      SET location = ST_SetSRID(ST_MakePoint(:lng, :lat), 4326)::geography,
+          updated_at = :updated_at
+      WHERE id = :id AND user_id = :user_id'
+    );
+    $stmt->execute([
+      'id' => $id->toRfc4122(),
+      'user_id' => $userId->toRfc4122(),
+      'lng' => $location->longitude,
+      'lat' => $location->latitude,
+      'updated_at' => $updatedAt->format('Y-m-d H:i:sP'),
+    ]);
+
+    return $stmt->rowCount();
+  }
+
+  #[Override]
   public function delete(Uuid $id, Uuid $userId): int
   {
     $stmt = $this->pdo->prepare(
