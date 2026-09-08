@@ -15,6 +15,7 @@ use App\Controller\ListPlaceTagsController;
 use App\Controller\ListTagsController;
 use App\Controller\ListTagsWithCountsController;
 use App\Controller\LoginController;
+use App\Controller\MeConfigController;
 use App\Controller\RegisterController;
 use App\Controller\ResendVerificationController;
 use App\Controller\ShowPlaceController;
@@ -35,6 +36,7 @@ return function (App $app): void {
 
   // public routes - no auth
   $app->group('/api', function (RouteCollectorProxy $group): void {
+    $group->get('/config', ConfigController::class);
     $group->post('/register', RegisterController::class);
     $group->post('/login', LoginController::class);
     $group->post('/verify-email', VerifyEmailController::class);
@@ -43,7 +45,7 @@ return function (App $app): void {
 
   // protected routes - require a valid token
   $app->group('/api', function (RouteCollectorProxy $group) use ($container): void {
-    $group->get('/config', ConfigController::class);
+    $group->get('/config/me', MeConfigController::class);
 
     $group->post('/places', CreatePlaceController::class);
     $group->get('/places', ListPlacesController::class);

@@ -6,27 +6,34 @@ namespace App\Tests\Functional;
 
 final class ConfigTest extends FunctionalTestCase
 {
-  public function testConfigExposesTagDefaultsAndPasswordPolicy(): void
+  public function testPublicConfigReturnsPasswordPolicyWithoutAuth(): void
   {
-    $user = $this->fixtures->createUser();
-
-    $response = $this->request('GET', '/api/config', null, $this->authHeader($user['id']));
+    $response = $this->request('GET', '/api/config'); // no auth
 
     self::assertSame(200, $response->getStatusCode());
     $body = $this->jsonBody($response);
 
-    self::assertArrayHasKey('tag', $body);
-
     self::assertSame(12, $body['password']['min_length']);
     self::assertTrue($body['password']['require_uppercase']);
-    self::assertTrue($body['password']['require_lowercase']);
-    self::assertTrue($body['password']['require_number']);
-    self::assertTrue($body['password']['require_symbol']);
+    self::assertArrayNotHasKey('tag', $body); // public tier excludes per-user config
   }
 
-  public function testConfigRequiresAuth(): void
+  public function testMeConfigReturnsSupersetWhenAuthed(): void
   {
-    $response = $this->request('GET', '/api/config');
+    $user = $this->fixtures->createUser();
+
+    $response = $this->request('GET', '/api/config/me', null, $this->authHeader($user['id']));
+
+    self::assertSame(200, $response->getStatusCode());
+    $body = $this->jsonBody($response);
+
+    self::assertSame(12, $body['password']['min_length']);  // includes everything public
+    self::assertArrayHasKey('tag', $body);                  // plus the per-user extras
+  }
+
+  public function testMeConfigRequiresAuth(): void
+  {
+    $response = $this->request('GET', '/api/config/me');  // no auth
 
     self::assertSame(401, $response->getStatusCode());
   }
