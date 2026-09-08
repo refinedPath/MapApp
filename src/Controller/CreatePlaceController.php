@@ -4,12 +4,11 @@ declare(strict_types=1);
 
 namespace App\Controller;
 
-use App\Entity\Coordinates;
 use App\Entity\Place;
-use App\Exception\InvalidCoordinatesException;
 use App\Http\PlaceSerializer;
 use App\Http\Responder;
 use App\Repository\PlaceRepositoryInterface;
+use App\Validation\CoordinateInput;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Symfony\Component\Uid\Uuid;
@@ -43,30 +42,16 @@ final class CreatePlaceController
     } elseif (mb_strlen($name) > Place::MAX_NAME_LENGTH) {
       $errors['name'] = 'Name must be at most ' . Place::MAX_NAME_LENGTH . ' characters.';
     }
-    if (!is_numeric($latRaw)) {
-      $errors['latitude'] = 'Latitude is required and must be numeric.';
-    }
-    if (!is_numeric($lngRaw)) {
-      $errors['longitude'] = 'Longitude is required and must be numeric.';
-    }
+
+    [$location, $coordinateErrors] = CoordinateInput::parse($latRaw, $lngRaw);
+    $errors += $coordinateErrors;
 
     if ($errors !== []) {
       return Responder::json($response, ['errors' => $errors], 422);
     }
 
-    if (!is_numeric($latRaw) || !is_numeric($lngRaw)) {
-      throw new \RuntimeException('Coordinates not numeric after validation.');
-    }
-
-    try {
-      $location = new Coordinates(
-        latitude: (float) $latRaw,
-        longitude: (float) $lngRaw,
-      );
-    } catch (InvalidCoordinatesException $e) {
-      return Responder::json($response, [
-        'errors' => ['location' => $e->getMessage()],
-      ], 422);
+    if ($location === null) {
+      throw new \RuntimeException('Coordinates missing after successful validation.');
     }
 
     $now = new \DateTimeImmutable();
