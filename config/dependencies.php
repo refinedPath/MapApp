@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Controller\RegisterController;
 use App\Mail\InMemoryMailer;
 use App\Mail\LogMailer;
 use App\Mail\MailerInterface;
@@ -79,6 +80,15 @@ return [
       $c->get(MailerInterface::class),
       $c->get('settings')['app']['url'],
       $c->get('settings')['mail']['verification_ttl_hours'],
+    );
+  },
+
+  RegisterController::class => function (ContainerInterface $c): RegisterController {
+    return new RegisterController(
+      $c->get(UserRepositoryInterface::class),
+      $c->get(EmailVerificationService::class),
+      $c->get(PasswordPolicy::class),
+      $c->get('settings')['registration']['auto_verify_new_accounts'],
     );
   },
 

@@ -24,6 +24,10 @@ return [
   'app' => [
     'url' => $_ENV['APP_URL'] ?? 'http://localhost',
   ],
+  'registration' => [
+    // Dev and demo only. Never enable in production.
+    'auto_verify_new_accounts' => filter_var($_ENV['AUTO_VERIFY_NEW_ACCOUNTS'] ?? false, FILTER_VALIDATE_BOOLEAN),
+  ],
   'password' => [
     'min_length' => (int) ($_ENV['PASSWORD_MIN_LENGTH'] ?? 12),
     'require_uppercase' => filter_var($_ENV['PASSWORD_REQUIRE_UPPERCASE'] ?? true, FILTER_VALIDATE_BOOLEAN),

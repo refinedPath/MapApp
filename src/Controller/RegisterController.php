@@ -20,8 +20,8 @@ final class RegisterController
     private readonly UserRepositoryInterface $users,
     private readonly EmailVerificationService $verification,
     private readonly PasswordPolicy $passwordPolicy,
-  ) {
-  }
+    private readonly bool $autoVerifyNewAccounts,
+  ) {}
 
   public function __invoke(Request $request, Response $response): Response
   {
@@ -69,11 +69,17 @@ final class RegisterController
     try {
       $this->users->create($user);
     } catch (EmailAlreadyExistsException) {
-      // Race between findByEmail and create — still identical response.
+      // Race between findByEmail and create. Still identical response.
       return $this->accepted($response);
     }
 
-    $this->verification->sendVerification($user);
+    if ($this->autoVerifyNewAccounts) {
+      // Login still requires a verified account. This grants verification up front
+      // rather than weakening that check.
+      $this->users->markEmailVerified($user->id, $now);
+    } else {
+      $this->verification->sendVerification($user);
+    }
 
     return $this->accepted($response);
   }
@@ -81,7 +87,7 @@ final class RegisterController
   private function accepted(Response $response): Response
   {
     // 202: accepted for processing. Outcome (email sent / account state) is not
-    // synchronously revealed — and is identical across all paths.
+    // synchronously revealed.
     return Responder::json($response, [
       'message' => 'Check your email to verify your account.',
     ], 202);
