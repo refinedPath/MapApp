@@ -24,15 +24,51 @@
 
   <div id="authView">
     <article>
-      <h2>Login</h2>
-      <form id="loginForm" name="loginForm">
-        <label for="loginEmail">Email</label>
-        <input type="email" id="loginEmail" name="loginEmail" autocomplete="email" required>
-        <label for="loginPassword">Password</label>
-        <input type="password" id="loginPassword" name="loginPassword" autocomplete="current-password" required>
-        <p id="loginError" role="alert"></p>
-        <input type="submit" value="Login">
-      </form>
+      <!-- Login -->
+      <section id="loginSection">
+        <h2>Login</h2>
+        <form id="loginForm" name="loginForm">
+          <label for="loginEmail">Email</label>
+          <input type="email" id="loginEmail" name="loginEmail" autocomplete="email" required>
+          <label for="loginPassword">Password</label>
+          <input type="password" id="loginPassword" name="loginPassword" autocomplete="current-password" required>
+          <p id="loginError" role="alert"></p>
+          <input type="submit" value="Login">
+        </form>
+        <p>No account? <a href="#" id="showRegisterLink">Create one</a></p>
+      </section>
+
+      <!-- Register -->
+      <section id="registerSection" hidden>
+        <h2>Create account</h2>
+        <form id="registerForm" name="registerForm">
+          <label for="registerEmail">Email</label>
+          <input type="email" id="registerEmail" name="registerEmail" autocomplete="email" required>
+          <label for="registerPassword">Password</label>
+          <input type="password" id="registerPassword" name="registerPassword" autocomplete="new-password" required>
+          <label for="registerPasswordConfirm">Confirm password</label>
+          <input type="password" id="registerPasswordConfirm" name="registerPasswordConfirm" autocomplete="new-password"
+            required>
+          <p id="registerError" role="alert"></p>
+          <input type="submit" value="Create account">
+        </form>
+        <p id="registerSuccess" role="status" hidden></p>
+        <p>Already have an account? <a href="#" id="showLoginLink">Log in</a></p>
+      </section>
+
+      <!-- Email verification (entered via the ?verify=<token> link) -->
+      <section id="verifySection" hidden>
+        <h2>Email verification</h2>
+        <p id="verifyMessage" role="status"></p>
+        <form id="resendForm" name="resendForm" hidden>
+          <label for="resendEmail">Email</label>
+          <input type="email" id="resendEmail" name="resendEmail" autocomplete="email" required>
+          <p id="resendError" role="alert"></p>
+          <input type="submit" value="Resend verification email">
+        </form>
+        <p id="resendSuccess" role="status" hidden></p>
+        <p><a href="#" id="verifyToLoginLink">Go to login</a></p>
+      </section>
     </article>
   </div>
 

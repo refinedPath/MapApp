@@ -10,6 +10,9 @@
   // DOM refs — assigned in init() after the DOM is ready.
   let appConfig = null;
   let authView, loginForm, loginEmail, loginPassword, loginError;
+  let loginSection, registerSection, showRegisterLink, showLoginLink;
+  let registerForm, registerEmail, registerPassword, registerPasswordConfirm, registerError, registerSuccess;
+  let verifySection, verifyMessage, resendForm, resendEmail, resendError, resendSuccess, verifyToLoginLink;
   let mapContainer, mapCustomControls, addPlaceBtn, logoutBtn;
   let createPlaceDialog, createPlaceForm, placeName, placeDescription, createPlaceError, cancelCreatePlaceBtn;
   let editPlaceDialog, editPlaceForm, editPlaceName, editPlaceDescription, editPlaceTagsList, editPlaceAllTagsList, editPlaceError, cancelEditPlaceBtn, deleteEditPlaceBtn;
@@ -48,10 +51,30 @@
 
   function init() {
     authView = document.getElementById('authView');
+
     loginForm = document.getElementById('loginForm');
     loginEmail = document.getElementById('loginEmail');
     loginPassword = document.getElementById('loginPassword');
     loginError = document.getElementById('loginError');
+    loginSection = document.getElementById('loginSection');
+    showLoginLink = document.getElementById('showLoginLink');
+
+    registerSection = document.getElementById('registerSection');
+    showRegisterLink = document.getElementById('showRegisterLink');
+    registerForm = document.getElementById('registerForm');
+    registerEmail = document.getElementById('registerEmail');
+    registerPassword = document.getElementById('registerPassword');
+    registerPasswordConfirm = document.getElementById('registerPasswordConfirm');
+    registerError = document.getElementById('registerError');
+    registerSuccess = document.getElementById('registerSuccess');
+
+    verifySection = document.getElementById('verifySection');
+    verifyMessage = document.getElementById('verifyMessage');
+    resendForm = document.getElementById('resendForm');
+    resendEmail = document.getElementById('resendEmail');
+    resendError = document.getElementById('resendError');
+    resendSuccess = document.getElementById('resendSuccess');
+    verifyToLoginLink = document.getElementById('verifyToLoginLink');
 
     mapContainer = document.getElementById('mapContainer');
     mapCustomControls = document.getElementById('mapCustomControls');
@@ -137,6 +160,72 @@
         loginError.textContent = err.message;
         console.error(err);
       }
+    });
+
+    registerForm.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      registerError.textContent = '';
+      registerSuccess.hidden = true;
+
+      if (registerPassword.value !== registerPasswordConfirm.value) {
+        registerError.textContent = 'Passwords do not match.';
+        return;
+      }
+
+      try {
+        const data = await register({
+          email: registerEmail.value,
+          password: registerPassword.value,
+        });
+
+        registerForm.hidden = true;
+        registerSuccess.textContent = data.message ?? 'Check your email to verify your account.';
+        registerSuccess.hidden = false;
+      } catch (err) {
+        if (err.status === 422 && err.data?.errors) {
+          const e = err.data.errors;
+          registerError.textContent = [e.email, e.password].filter(Boolean).join(' ');
+        } else {
+          registerError.textContent = err.message;
+        }
+      }
+    });
+
+    showRegisterLink.addEventListener('click', (event) => {
+      event.preventDefault();
+      showAuthSection('register');
+    });
+
+    showLoginLink.addEventListener('click', (event) => {
+      event.preventDefault();
+      showAuthSection('login');
+    });
+
+    resendForm.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      resendError.textContent = '';
+      resendSuccess.hidden = true;
+
+      try {
+        const data = await apiFetch(`${API_BASE}/resend-verification`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: resendEmail.value }),
+        });
+        resendSuccess.textContent = data.message ?? 'If that account exists and is unverified, a new verification email has been sent.';
+        resendSuccess.hidden = false;
+      } catch (err) {
+        if (err.status === 422 && err.data?.errors) {
+          resendError.textContent = err.data.errors.email ?? 'A valid email is required.';
+        } else {
+          resendError.textContent = err.message;
+        }
+      }
+    });
+
+    verifyToLoginLink.addEventListener('click', (event) => {
+      event.preventDefault();
+      showAuthSection('login');
     });
 
     createPlaceDialog.addEventListener('submit', async (event) => {
@@ -298,6 +387,8 @@
     logoutBtn.addEventListener('click', () => {
       logout();
     });
+
+    maybeHandleVerification();
   }
 
   function armAddPlaceMode() {
@@ -327,6 +418,7 @@
     if (!response.ok) {
       const err = new Error(data.error ?? `HTTP ${response.status}`);
       err.status = response.status;
+      err.data = data;
       throw err;
     }
     return data;
@@ -365,6 +457,16 @@
     loginError.textContent = message ?? '';
   }
 
+  function showAuthSection(which) {
+    loginSection.hidden = which !== 'login';
+    registerSection.hidden = which !== 'register';
+    verifySection.hidden = which !== 'verify';
+    loginError.textContent = '';
+    registerError.textContent = '';
+    registerSuccess.hidden = true;
+    registerForm.hidden = false;
+  }
+
   async function login(payload) {
     const data = await apiFetch(`${API_BASE}/login`, {
       method: 'POST',
@@ -374,6 +476,44 @@
       body: JSON.stringify(payload),
     });
     return data.token;
+  }
+
+  async function register(payload) {
+    return apiFetch(`${API_BASE}/register`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+  }
+
+  async function maybeHandleVerification() {
+    const token = new URLSearchParams(location.search).get('verify');
+    if (!token) return;
+
+    history.replaceState(null, '', location.pathname);
+
+    showAuthSection('verify');
+    verifyMessage.textContent = 'Verifying…';
+    resendForm.hidden = true;
+
+    try {
+      const data = await apiFetch(`${API_BASE}/verify-email`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token }),
+      });
+      verifyMessage.textContent = data.message ?? 'Email verified. You can now log in.';
+    } catch (err) {
+      if (err.status === 410) {
+        verifyMessage.textContent = 'This verification link has expired. Request a new one below.';
+        resendForm.hidden = false;
+      } else if (err.status === 400) {
+        verifyMessage.textContent = 'This verification link is invalid. Request a new one below.';
+        resendForm.hidden = false;
+      } else {
+        verifyMessage.textContent = err.message;
+      }
+    }
   }
 
   async function fetchPlaces() {
@@ -402,7 +542,7 @@
   }
 
   async function fetchConfig() {
-    return authedFetch(`${API_BASE}/config`);
+    return authedFetch(`${API_BASE}/config/me`);
   }
 
   function firstGrapheme(str) {
