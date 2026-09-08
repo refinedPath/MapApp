@@ -16,7 +16,7 @@
   let verifySection, verifyMessage, resendForm, resendEmail, resendError, resendSuccess, verifyToLoginLink;
   let mapContainer, mapCustomControls, addPlaceBtn, logoutBtn;
   let createPlaceDialog, createPlaceForm, placeName, placeDescription, createPlaceError, cancelCreatePlaceBtn;
-  let editPlaceDialog, editPlaceForm, editPlaceName, editPlaceDescription, editPlaceTagsList, editPlaceAllTagsList, editPlaceError, cancelEditPlaceBtn, deleteEditPlaceBtn;
+  let editPlaceDialog, editPlaceForm, editPlaceName, editPlaceDescription, editPlaceTagsList, editPlaceAllTagsList, editPlaceError, cancelEditPlaceBtn, deleteEditPlaceBtn, movePlaceBtn;
   let manageTagsBtn, manageTagsDialog, tagForm, tagFormName, tagFormColor, tagFormEmoji, tagFormError, tagFormCancelBtn, tagFormSubmit, tagManagerList, closeManageTagsBtn;
   let editPlaceTags = [];
   let editPlaceAllTags = [];
@@ -98,6 +98,7 @@
     editPlaceError = document.getElementById('editPlaceError');
     cancelEditPlaceBtn = document.getElementById('cancelEditPlaceBtn');
     deleteEditPlaceBtn = document.getElementById('deleteEditPlaceBtn');
+    movePlaceBtn = document.getElementById('movePlaceBtn');
 
     manageTagsBtn = document.getElementById('manageTagsBtn');
     manageTagsDialog = document.getElementById('manageTagsDialog');
@@ -317,6 +318,16 @@
         editPlaceError.textContent = err.message;
         console.error(err);
       }
+    });
+
+    movePlaceBtn.addEventListener('click', () => {
+      const placeId = editPlaceDialog.dataset.placeId;
+      const marker = state.markers[placeId];
+      if (!marker) return;
+
+      editPlaceDialog.close();
+      marker.setDraggable(true);
+      marker.getElement().style.cursor = 'move';
     });
 
     manageTagsBtn.addEventListener('click', () => {
@@ -1042,8 +1053,27 @@
       .setPopup(popup)
       .addTo(state.map);
 
+    // Non-draggable by default, The edit dialog's "Move place" button arms it.
+    marker.on('dragend', () => persistMarkerLocation(place.id, marker));
+
     state.markers[place.id] = marker;
     return marker;
+  }
+
+  async function persistMarkerLocation(placeId, marker) {
+    const { lng, lat } = marker.getLngLat().wrap();
+    try {
+      await authedFetch(`${API_BASE}/places/${placeId}/location`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ latitude: lat, longitude: lng }),
+      });
+    } catch (err) {
+      alert(err.message);
+      console.error(err);
+    }
+
+    await refreshPlaceMarker(placeId);
   }
 
   async function refreshPlaceMarker(placeId) {
