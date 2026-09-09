@@ -21,7 +21,8 @@ final class RegisterController
     private readonly EmailVerificationService $verification,
     private readonly PasswordPolicy $passwordPolicy,
     private readonly bool $autoVerifyNewAccounts,
-  ) {}
+  ) {
+  }
 
   public function __invoke(Request $request, Response $response): Response
   {

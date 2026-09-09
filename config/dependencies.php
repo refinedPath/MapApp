@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Controller\RegisterController;
+use App\Http\ConfigProvider;
 use App\Mail\InMemoryMailer;
 use App\Mail\LogMailer;
 use App\Mail\MailerInterface;
@@ -87,6 +88,13 @@ return [
     return new RegisterController(
       $c->get(UserRepositoryInterface::class),
       $c->get(EmailVerificationService::class),
+      $c->get(PasswordPolicy::class),
+      $c->get('settings')['registration']['auto_verify_new_accounts'],
+    );
+  },
+
+  ConfigProvider::class => function (ContainerInterface $c): ConfigProvider {
+    return new ConfigProvider(
       $c->get(PasswordPolicy::class),
       $c->get('settings')['registration']['auto_verify_new_accounts'],
     );

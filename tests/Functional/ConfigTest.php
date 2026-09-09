@@ -18,6 +18,17 @@ final class ConfigTest extends FunctionalTestCase
     self::assertArrayNotHasKey('tag', $body); // public tier excludes per-user config
   }
 
+  public function testPublicConfigExposesAutoVerifyFlag(): void
+  {
+    $response = $this->request('GET', '/api/config'); // no auth
+
+    self::assertSame(200, $response->getStatusCode());
+    $body = $this->jsonBody($response);
+
+    self::assertArrayHasKey('auto_verify_new_accounts', $body);
+    self::assertFalse($body['auto_verify_new_accounts']); // verification required in the default env
+  }
+
   public function testMeConfigReturnsSupersetWhenAuthed(): void
   {
     $user = $this->fixtures->createUser();

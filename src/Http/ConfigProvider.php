@@ -11,6 +11,7 @@ final class ConfigProvider
 {
   public function __construct(
     private readonly PasswordPolicy $passwordPolicy,
+    private readonly bool $autoVerifyNewAccounts,
   ) {
   }
 
@@ -24,6 +25,7 @@ final class ConfigProvider
   {
     return [
       'password' => $this->passwordPolicy->toArray(),
+      'auto_verify_new_accounts' => $this->autoVerifyNewAccounts,
     ];
   }
 
