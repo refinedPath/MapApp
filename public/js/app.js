@@ -12,7 +12,7 @@
   let authView, loginForm, loginEmail, loginPassword, loginError;
   let loginSection, registerSection, showRegisterLink, showLoginLink;
   let registerForm, registerEmail, registerPassword, registerPasswordConfirm, registerError, registerSuccess;
-  let passwordRequirements, passwordPolicy = null;
+  let passwordRequirements, passwordPolicy = null, autoVerifyNewAccounts = false;
   let verifySection, verifyMessage, resendForm, resendEmail, resendError, resendSuccess, verifyToLoginLink;
   let mapContainer, mapCustomControls, addPlaceBtn, logoutBtn;
   let createPlaceDialog, createPlaceForm, placeName, placeDescription, createPlaceError, cancelCreatePlaceBtn;
@@ -184,7 +184,9 @@
         });
 
         registerForm.hidden = true;
-        registerSuccess.textContent = data.message ?? 'Check your email to verify your account.';
+        registerSuccess.textContent = autoVerifyNewAccounts
+          ? 'Account created. You can log in now.'
+          : (data.message ?? 'Check your email to verify your account.');
         registerSuccess.hidden = false;
       } catch (err) {
         if (err.status === 422 && err.data?.errors) {
@@ -403,7 +405,7 @@
       logout();
     });
 
-    loadPasswordPolicy();
+    loadPublicConfig();
 
     maybeHandleVerification();
   }
@@ -495,10 +497,11 @@
     return data.token;
   }
 
-  async function loadPasswordPolicy() {
+  async function loadPublicConfig() {
     try {
       const config = await apiFetch(`${API_BASE}/config`);
       passwordPolicy = config.password ?? null;
+      autoVerifyNewAccounts = config.auto_verify_new_accounts ?? false;
       renderPasswordRequirements();
     } catch {
       passwordPolicy = null;
